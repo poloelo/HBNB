@@ -1,12 +1,16 @@
 from flask import Flask
 from flask_restx import Api
-from config import config
+from config import DevelopmentConfig
+from app.extensions import bcrypt
 
 
-def create_app(config_name='default'):
+def create_app(config_class=DevelopmentConfig):
     """Application factory pattern"""
     app = Flask(__name__)
-    app.config.from_object(config[config_name])
+    app.config.from_object(config_class)
+
+    # Initialisation des extensions Flask
+    bcrypt.init_app(app)
 
     api = Api(
         app,

@@ -23,6 +23,7 @@ user_model = api.model(
         "first_name": fields.String(required=True,  description="Prénom (max 50 car.)"),
         "last_name":  fields.String(required=True,  description="Nom (max 50 car.)"),
         "email":      fields.String(required=True,  description="Adresse email valide et unique"),
+        "password":   fields.String(required=True,  description="Mot de passe (sera haché, non retourné)"),
         "is_admin":   fields.Boolean(required=False, default=False, description="Rôle admin"),
     },
 )
