@@ -39,6 +39,10 @@ class HBnBFacade:
     def get_user(self, user_id: str) -> User:
         return self._users.get(user_id)
 
+    def get_user_by_email(self, email: str) -> User:
+        """Récupère un utilisateur par son email. Utilisé pour l'authentification."""
+        return self._users.get_by_attribute("email", email)
+
     def get_all_users(self) -> list:
         return self._users.get_all()
 

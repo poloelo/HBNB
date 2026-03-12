@@ -11,6 +11,7 @@ DELETE n'est PAS implémenté dans cette partie.
 """
 
 from flask_restx import Namespace, Resource, fields
+from flask_jwt_extended import jwt_required
 from app.services import facade
 
 # ── Namespace ──────────────────────────────────────────────────────────────────
@@ -96,12 +97,13 @@ class UserResource(Resource):
             api.abort(404, f"Utilisateur '{user_id}' introuvable.")
         return user.to_dict(), 200
 
+    @jwt_required()
     @api.expect(user_model, validate=True)
     @api.marshal_with(user_response_model)
     def put(self, user_id):
         """
         PUT /api/v1/users/<user_id>
-        Met à jour un utilisateur existant.
+        Met à jour un utilisateur existant. Nécessite un JWT valide.
 
         Body attendu : un ou plusieurs champs à modifier.
         Réponse 200 : l'utilisateur mis à jour.

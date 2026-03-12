@@ -11,6 +11,7 @@ DELETE n'est PAS implémenté dans cette partie.
 """
 
 from flask_restx import Namespace, Resource, fields
+from flask_jwt_extended import jwt_required
 from app.services import facade
 
 # ── Namespace ──────────────────────────────────────────────────────────────────
@@ -97,12 +98,13 @@ class PlaceList(Resource):
         places = facade.get_all_places()
         return [p.to_dict() for p in places], 200
 
+    @jwt_required()
     @api.expect(place_model, validate=True)
     @api.marshal_with(place_response_model, code=201)
     def post(self):
         """
         POST /api/v1/places/
-        Crée un nouveau lieu.
+        Crée un nouveau lieu. Nécessite un JWT valide.
 
         Body attendu : { "title": "...", "price": 80, "latitude": 48.85,
                          "longitude": 2.35, "owner_id": "<uuid>", "amenities": [] }
@@ -136,12 +138,13 @@ class PlaceResource(Resource):
             api.abort(404, f"Lieu '{place_id}' introuvable.")
         return place.to_dict(), 200
 
+    @jwt_required()
     @api.expect(place_model, validate=True)
     @api.marshal_with(place_response_model)
     def put(self, place_id):
         """
         PUT /api/v1/places/<place_id>
-        Met à jour un lieu existant.
+        Met à jour un lieu existant. Nécessite un JWT valide.
 
         Body attendu : un ou plusieurs champs à modifier.
         Réponse 200 : le lieu mis à jour.

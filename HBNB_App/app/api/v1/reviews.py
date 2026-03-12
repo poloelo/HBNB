@@ -8,6 +8,7 @@ Presentation layer  Review endpoints.
 """
 
 from flask_restx import Namespace, Resource, fields
+from flask_jwt_extended import jwt_required
 from app.services import facade
 
 api = Namespace("reviews", description="Review operations")
@@ -39,6 +40,7 @@ review_response_model = api.model("ReviewResponse", {
 @api.route("/")
 class ReviewList(Resource):
 
+    @jwt_required()
     @api.expect(review_create_model, validate=True)
     @api.marshal_with(review_response_model, code=201)
     def post(self):
@@ -61,6 +63,7 @@ class ReviewDetail(Resource):
             api.abort(404, "Review not found.")
         return review.to_dict(), 200
 
+    @jwt_required()
     @api.expect(review_update_model, validate=True)
     @api.marshal_with(review_response_model)
     def put(self, review_id):
