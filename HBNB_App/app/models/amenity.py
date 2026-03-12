@@ -2,6 +2,7 @@ from .base_model import BaseModel
 
 
 class Amenity(BaseModel):
+    __abstract__ = True
     """
     Représente un équipement/service disponible dans un lieu.
     Exemples : Wi-Fi, piscine, parking, climatisation...

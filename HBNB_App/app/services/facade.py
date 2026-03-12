@@ -11,21 +11,18 @@ Migration vers SQLAlchemy (tâche 5) :
     en attendant que leurs modèles soient mappés (tâche 6).
 """
 
-from app.models.user import User
 from app.models.place import Place
 from app.models.review import Review
 from app.models.amenity import Amenity
-from app.persistence.repository import InMemoryRepository, SQLAlchemyRepository
+from app.persistence.repository import InMemoryRepository, UserRepository
 
 
 class HBnBFacade:
     def __init__(self):
-        # Users : persistance base de données via SQLAlchemy
-        # Prérequis : User doit hériter de db.Model (tâche 6)
-        self._users = SQLAlchemyRepository(User)
+        # Users : persistance base de données via SQLAlchemy + get_by_email()
+        self._users = UserRepository()
 
         # Places, Reviews, Amenities : toujours en mémoire
-        # Seront migrés vers SQLAlchemyRepository lors du mapping des modèles (tâche 6)
         self._places = InMemoryRepository()
         self._reviews = InMemoryRepository()
         self._amenities = InMemoryRepository()
@@ -33,9 +30,10 @@ class HBnBFacade:
     # ══════════════════════════════════════════════════
     #  USERS
     # ══════════════════════════════════════════════════
-    def create_user(self, data: dict) -> User:
-        if self._users.get_by_attribute("email", data.get("email")):
+    def create_user(self, data: dict):
+        if self._users.get_by_email(data.get("email")):
             raise ValueError("Un utilisateur avec cet email existe déjà.")
+        from app.models.user import User
         user = User(
             first_name=data["first_name"],
             last_name=data["last_name"],
@@ -46,20 +44,20 @@ class HBnBFacade:
         self._users.add(user)
         return user
 
-    def get_user(self, user_id: str) -> User:
+    def get_user(self, user_id: str):
         return self._users.get(user_id)
 
-    def get_user_by_email(self, email: str) -> User:
+    def get_user_by_email(self, email: str):
         """Récupère un utilisateur par son email. Utilisé pour l'authentification."""
-        return self._users.get_by_attribute("email", email)
+        return self._users.get_by_email(email)
 
     def get_all_users(self) -> list:
         return self._users.get_all()
 
-    def update_user(self, user_id: str, data: dict) -> User:
+    def update_user(self, user_id: str, data: dict):
         # Si l'email change, vérifier l'unicité
         if "email" in data:
-            existing = self._users.get_by_attribute("email", data["email"])
+            existing = self._users.get_by_email(data["email"])
             if existing and existing.id != user_id:
                 raise ValueError("Cet email est déjà utilisé par un autre utilisateur.")
 

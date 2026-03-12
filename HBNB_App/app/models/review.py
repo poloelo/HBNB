@@ -2,6 +2,7 @@ from .base_model import BaseModel
 
 
 class Review(BaseModel):
+    __abstract__ = True
     """
     Représente un avis laissé par un utilisateur sur un lieu.
 
@@ -19,9 +20,8 @@ class Review(BaseModel):
         self.place = place   # objet Place complet
         self.user = user     # objet User complet
 
-        # Relations bidirectionnelles : la place et l'user gardent leurs reviews
+        # La place garde une référence vers ses reviews
         place.add_review(self)
-        user.reviews.append(self)
 
     # ── text ───────────────────────────────────────────────────────────────
     @property

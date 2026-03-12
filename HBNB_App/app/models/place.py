@@ -2,6 +2,7 @@ from .base_model import BaseModel
 
 
 class Place(BaseModel):
+    __abstract__ = True
     """
     Représente un lieu à louer dans l'application.
 
@@ -27,9 +28,6 @@ class Place(BaseModel):
         self.owner = owner        # objet User complet (pas juste l'id)
         self.amenities = []       # liste d'objets Amenity
         self.reviews = []         # liste d'objets Review
-
-        # L'owner tient aussi une référence vers ses places (relation bidirectionnelle)
-        owner.places.append(self)
 
     # ── title ──────────────────────────────────────────────────────────────
     @property
