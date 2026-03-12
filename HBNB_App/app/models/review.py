@@ -2,7 +2,6 @@ from .base_model import BaseModel
 
 
 class Review(BaseModel):
-    __abstract__ = True
     """
     Représente un avis laissé par un utilisateur sur un lieu.
 
@@ -12,6 +11,8 @@ class Review(BaseModel):
     - place  : instance Place — relation many-to-one
     - user   : instance User — relation many-to-one
     """
+
+    __abstract__ = True
 
     def __init__(self, text: str, rating: int, place, user):
         super().__init__()
@@ -54,12 +55,7 @@ class Review(BaseModel):
         base.update({
             "text": self.text,
             "rating": self.rating,
-            # On expose les infos clés de la place et de l'auteur directement
             "place_id": self.place.id,
-            "user": {
-                "id": self.user.id,
-                "first_name": self.user.first_name,
-                "last_name": self.user.last_name,
-            },
+            "user_id": self.user.id,
         })
         return base

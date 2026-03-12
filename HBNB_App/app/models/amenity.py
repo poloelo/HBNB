@@ -2,7 +2,6 @@ from .base_model import BaseModel
 
 
 class Amenity(BaseModel):
-    __abstract__ = True
     """
     Représente un équipement/service disponible dans un lieu.
     Exemples : Wi-Fi, piscine, parking, climatisation...
@@ -10,6 +9,8 @@ class Amenity(BaseModel):
     Attributs :
     - name : obligatoire, max 50 caractères
     """
+
+    __abstract__ = True
 
     def __init__(self, name: str):
         super().__init__()

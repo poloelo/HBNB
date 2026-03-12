@@ -117,7 +117,23 @@ class HBnBFacade:
         return self._places.get_all()
 
     def update_place(self, place_id: str, data: dict) -> Place:
-        return self._places.update(place_id, data)
+        # Seuls les champs scalaires du Place sont mis à jour directement.
+        # owner_id et amenities nécessitent une résolution d'objets et ne peuvent
+        # pas être passés tels quels à setattr (qui attend un objet User/Amenity).
+        allowed = {"title", "description", "price", "latitude", "longitude"}
+        place_data = {k: v for k, v in data.items() if k in allowed}
+
+        # Si de nouvelles amenities sont fournies, résoudre les UUIDs en objets
+        if "amenities" in data:
+            place = self._places.get(place_id)
+            if place:
+                place.amenities = []
+                for amenity_id in data["amenities"]:
+                    amenity = self._amenities.get(amenity_id)
+                    if amenity:
+                        place.add_amenity(amenity)
+
+        return self._places.update(place_id, place_data)
 
     # ══════════════════════════════════════════════════
     #  REVIEWS

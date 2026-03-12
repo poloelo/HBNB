@@ -2,7 +2,6 @@ from .base_model import BaseModel
 
 
 class Place(BaseModel):
-    __abstract__ = True
     """
     Représente un lieu à louer dans l'application.
 
@@ -16,6 +15,8 @@ class Place(BaseModel):
     - amenities      : liste d'instances Amenity — relation many-to-many
     - reviews        : liste d'instances Review — relation 1-to-many
     """
+
+    __abstract__ = True
 
     def __init__(self, title: str, price: float, latitude: float,
                  longitude: float, owner, description: str = ""):
