@@ -11,7 +11,7 @@ DELETE n'est PAS implémenté dans cette partie.
 """
 
 from flask_restx import Namespace, Resource, fields
-from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
 from app.services import facade
 
 # ── Namespace ──────────────────────────────────────────────────────────────────
@@ -112,9 +112,11 @@ class PlaceList(Resource):
         Réponse 403 : owner_id ne correspond pas au JWT.
         """
         current_user_id = get_jwt_identity()
+        is_admin = get_jwt().get("is_admin", False)
 
-        # Un utilisateur ne peut créer un lieu qu'en son propre nom
-        if api.payload.get("owner_id") != current_user_id:
+        # Un user normal ne peut créer un lieu qu'en son propre nom.
+        # Un admin peut créer un lieu pour n'importe quel owner.
+        if not is_admin and api.payload.get("owner_id") != current_user_id:
             api.abort(403, "Vous ne pouvez créer un lieu qu'en votre propre nom.")
 
         try:
@@ -159,13 +161,15 @@ class PlaceResource(Resource):
         Réponse 400 : données invalides.
         """
         current_user_id = get_jwt_identity()
+        is_admin = get_jwt().get("is_admin", False)
 
         place = facade.get_place(place_id)
         if not place:
             api.abort(404, f"Lieu '{place_id}' introuvable.")
 
-        # Contrôle d'ownership : seul le propriétaire peut modifier
-        if place.owner.id != current_user_id:
+        # Contrôle d'ownership : seul le propriétaire peut modifier.
+        # Un admin peut modifier n'importe quel lieu.
+        if not is_admin and place.owner.id != current_user_id:
             api.abort(403, "Vous n'êtes pas le propriétaire de ce lieu.")
 
         try:

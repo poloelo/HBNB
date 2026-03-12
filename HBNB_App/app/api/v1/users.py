@@ -1,18 +1,21 @@
 """
-User Endpoints — Task 3
+User Endpoints — Task 4
 =======================
 Routes disponibles :
-  POST   /api/v1/users/       → créer un utilisateur (public)
+  POST   /api/v1/users/       → créer un utilisateur
+                                 Public : is_admin forcé à False
+                                 Admin  : peut définir is_admin librement
   GET    /api/v1/users/       → lister tous les utilisateurs (public)
   GET    /api/v1/users/<id>   → récupérer un utilisateur par id (public)
-  PUT    /api/v1/users/<id>   → mettre à jour son propre profil (JWT requis)
-                                 email et password NON modifiables via cet endpoint
+  PUT    /api/v1/users/<id>   → mettre à jour un profil (JWT requis)
+                                 User normal : son propre profil, first_name/last_name seul.
+                                 Admin       : n'importe quel profil + email + password.
 
 DELETE n'est PAS implémenté dans cette partie.
 """
 
 from flask_restx import Namespace, Resource, fields
-from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
 from app.services import facade
 
 # ── Namespace ──────────────────────────────────────────────────────────────────
@@ -26,17 +29,22 @@ user_model = api.model(
         "last_name":  fields.String(required=True,  description="Nom (max 50 car.)"),
         "email":      fields.String(required=True,  description="Adresse email valide et unique"),
         "password":   fields.String(required=True,  description="Mot de passe (sera haché, non retourné)"),
-        "is_admin":   fields.Boolean(required=False, default=False, description="Rôle admin"),
+        "is_admin":   fields.Boolean(required=False, default=False, description="Rôle admin (admin seulement)"),
     },
 )
 
 # ── Modèle d'entrée pour la mise à jour (PUT) ──────────────────────────────────
-# Email et password exclus : ne peuvent pas être modifiés via cet endpoint.
+# Tous les champs sont optionnels.
+# Les règles d'accès sont enforced dans le handler, pas dans le modèle :
+#   - User normal : seuls first_name / last_name acceptés
+#   - Admin       : email et password aussi modifiables
 user_update_model = api.model(
     "UserUpdate",
     {
         "first_name": fields.String(required=False, description="Prénom (max 50 car.)"),
         "last_name":  fields.String(required=False, description="Nom (max 50 car.)"),
+        "email":      fields.String(required=False, description="(Admin uniquement) Nouvel email"),
+        "password":   fields.String(required=False, description="(Admin uniquement) Nouveau mot de passe"),
     },
 )
 
@@ -62,11 +70,7 @@ class UserList(Resource):
 
     @api.marshal_list_with(user_response_model)
     def get(self):
-        """
-        GET /api/v1/users/
-        Endpoint PUBLIC — aucun token requis.
-        Retourne la liste de tous les utilisateurs.
-        """
+        """GET /api/v1/users/ — Endpoint PUBLIC."""
         users = facade.get_all_users()
         return [u.to_dict() for u in users], 200
 
@@ -75,14 +79,26 @@ class UserList(Resource):
     def post(self):
         """
         POST /api/v1/users/
-        Endpoint PUBLIC — inscription d'un nouvel utilisateur.
+        Crée un utilisateur.
 
-        Body attendu : { "first_name": ..., "last_name": ..., "email": ..., "password": ... }
-        Réponse 201 : l'utilisateur créé (sans le password).
-        Réponse 400 : champ invalide ou email déjà utilisé.
+        - Sans JWT (public) : is_admin est ignoré et forcé à False.
+        - Avec JWT admin : is_admin est pris en compte tel quel.
         """
+        data = dict(api.payload)
+
+        # Seul un admin peut créer un utilisateur avec is_admin=True
+        # Sans token valide, is_admin est ignoré (forcé False)
         try:
-            user = facade.create_user(api.payload)
+            claims = get_jwt()
+            caller_is_admin = claims.get("is_admin", False)
+        except Exception:
+            caller_is_admin = False
+
+        if not caller_is_admin:
+            data["is_admin"] = False
+
+        try:
+            user = facade.create_user(data)
         except ValueError as e:
             api.abort(400, str(e))
 
@@ -97,11 +113,7 @@ class UserResource(Resource):
 
     @api.marshal_with(user_response_model)
     def get(self, user_id):
-        """
-        GET /api/v1/users/<user_id>
-        Endpoint PUBLIC — aucun token requis.
-        Retourne un utilisateur par son id.
-        """
+        """GET /api/v1/users/<user_id> — Endpoint PUBLIC."""
         user = facade.get_user(user_id)
         if not user:
             api.abort(404, f"Utilisateur '{user_id}' introuvable.")
@@ -113,32 +125,34 @@ class UserResource(Resource):
     def put(self, user_id):
         """
         PUT /api/v1/users/<user_id>
-        Met à jour son propre profil. JWT requis.
+        Met à jour un profil utilisateur. JWT requis.
 
-        Règles :
-          - L'utilisateur connecté ne peut modifier QUE son propre profil (403 sinon).
-          - Email et password ne sont PAS modifiables via cet endpoint (400 si présents).
-          - Seuls first_name et last_name sont acceptés.
+        User normal :
+          - Ne peut modifier QUE son propre profil (403 sinon).
+          - Seuls first_name et last_name sont acceptés (400 si email/password présents).
 
-        Réponse 200 : l'utilisateur mis à jour.
-        Réponse 400 : tentative de modification email/password ou données invalides.
-        Réponse 403 : tentative de modifier le profil d'un autre utilisateur.
-        Réponse 404 : utilisateur introuvable.
+        Admin :
+          - Peut modifier n'importe quel profil.
+          - Peut modifier email (unicité vérifiée) et password (rehaché).
         """
         current_user_id = get_jwt_identity()
+        claims = get_jwt()
+        is_admin = claims.get("is_admin", False)
 
-        # Contrôle d'ownership : un user ne peut modifier que son propre profil
-        if current_user_id != user_id:
+        # Vérification d'ownership pour les non-admins
+        if not is_admin and current_user_id != user_id:
             api.abort(403, "Vous ne pouvez modifier que votre propre profil.")
 
         user = facade.get_user(user_id)
         if not user:
             api.abort(404, f"Utilisateur '{user_id}' introuvable.")
 
-        # Email et password ne sont pas modifiables via cet endpoint
-        data = api.payload
-        if "email" in data or "password" in data:
-            api.abort(400, "Modification de l'email ou du mot de passe non autorisée ici.")
+        data = dict(api.payload)
+
+        # Un user normal ne peut pas modifier email ni password
+        if not is_admin:
+            if "email" in data or "password" in data:
+                api.abort(400, "Modification de l'email ou du mot de passe non autorisée.")
 
         try:
             updated = facade.update_user(user_id, data)

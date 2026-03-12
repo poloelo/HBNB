@@ -52,6 +52,14 @@ class HBnBFacade:
             existing = self._users.get_by_attribute("email", data["email"])
             if existing and existing.id != user_id:
                 raise ValueError("Cet email est déjà utilisé par un autre utilisateur.")
+
+        # Le password doit être haché via hash_password(), pas setattr() direct
+        # On le traite avant d'appeler le repository générique
+        if "password" in data:
+            user = self._users.get(user_id)
+            if user:
+                user.hash_password(data.pop("password"))
+
         return self._users.update(user_id, data)
 
     # ══════════════════════════════════════════════════

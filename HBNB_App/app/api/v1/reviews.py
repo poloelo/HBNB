@@ -15,7 +15,7 @@ Règles métier :
 """
 
 from flask_restx import Namespace, Resource, fields
-from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
 from app.services import facade
 
 api = Namespace("reviews", description="Review operations")
@@ -117,13 +117,14 @@ class ReviewDetail(Resource):
         Règle : seul l'auteur de l'avis peut le modifier → 403 sinon.
         """
         current_user_id = get_jwt_identity()
+        is_admin = get_jwt().get("is_admin", False)
 
         review = facade.get_review(review_id)
         if review is None:
             api.abort(404, "Avis introuvable.")
 
-        # Contrôle d'ownership
-        if review.user.id != current_user_id:
+        # Contrôle d'ownership : auteur ou admin
+        if not is_admin and review.user.id != current_user_id:
             api.abort(403, "Vous ne pouvez modifier que vos propres avis.")
 
         data = api.payload
@@ -143,13 +144,14 @@ class ReviewDetail(Resource):
         Réponse 200 : confirmation de suppression.
         """
         current_user_id = get_jwt_identity()
+        is_admin = get_jwt().get("is_admin", False)
 
         review = facade.get_review(review_id)
         if review is None:
             api.abort(404, "Avis introuvable.")
 
-        # Contrôle d'ownership
-        if review.user.id != current_user_id:
+        # Contrôle d'ownership : auteur ou admin
+        if not is_admin and review.user.id != current_user_id:
             api.abort(403, "Vous ne pouvez supprimer que vos propres avis.")
 
         facade.delete_review(review_id)
