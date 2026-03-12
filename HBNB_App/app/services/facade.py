@@ -1,21 +1,31 @@
 """
-Facade (Task 0 + Task 1).
+Facade — Tasks 0-5.
 
 Le Facade est le SEUL point d'entrée entre la couche Présentation (API)
 et la couche Business Logic + Persistence.
 Il évite que les endpoints Flask connaissent les modèles ou le repository.
+
+Migration vers SQLAlchemy (tâche 5) :
+  - self._users utilise désormais SQLAlchemyRepository (persistance DB).
+  - Les autres entités (places, reviews, amenities) restent en InMemoryRepository
+    en attendant que leurs modèles soient mappés (tâche 6).
 """
 
 from app.models.user import User
 from app.models.place import Place
 from app.models.review import Review
 from app.models.amenity import Amenity
-from app.persistence.repository import InMemoryRepository
+from app.persistence.repository import InMemoryRepository, SQLAlchemyRepository
 
 
 class HBnBFacade:
     def __init__(self):
-        self._users = InMemoryRepository()
+        # Users : persistance base de données via SQLAlchemy
+        # Prérequis : User doit hériter de db.Model (tâche 6)
+        self._users = SQLAlchemyRepository(User)
+
+        # Places, Reviews, Amenities : toujours en mémoire
+        # Seront migrés vers SQLAlchemyRepository lors du mapping des modèles (tâche 6)
         self._places = InMemoryRepository()
         self._reviews = InMemoryRepository()
         self._amenities = InMemoryRepository()

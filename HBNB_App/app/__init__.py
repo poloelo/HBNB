@@ -1,7 +1,7 @@
 from flask import Flask
 from flask_restx import Api
 from config import DevelopmentConfig
-from app.extensions import bcrypt, jwt
+from app.extensions import bcrypt, jwt, db
 
 
 def create_app(config_class=DevelopmentConfig):
@@ -12,6 +12,7 @@ def create_app(config_class=DevelopmentConfig):
     # Initialisation des extensions Flask
     bcrypt.init_app(app)
     jwt.init_app(app)
+    db.init_app(app)
 
     api = Api(
         app,
