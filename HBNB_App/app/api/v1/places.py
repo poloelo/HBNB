@@ -11,7 +11,7 @@ DELETE n'est PAS implémenté dans cette partie.
 """
 
 from flask_restx import Namespace, Resource, fields
-from flask_jwt_extended import jwt_required
+from flask_jwt_extended import jwt_required, get_jwt_identity
 from app.services import facade
 
 # ── Namespace ──────────────────────────────────────────────────────────────────
@@ -104,13 +104,19 @@ class PlaceList(Resource):
     def post(self):
         """
         POST /api/v1/places/
-        Crée un nouveau lieu. Nécessite un JWT valide.
+        Crée un nouveau lieu. JWT requis.
 
-        Body attendu : { "title": "...", "price": 80, "latitude": 48.85,
-                         "longitude": 2.35, "owner_id": "<uuid>", "amenities": [] }
-        Réponse 201 : le lieu créé avec owner et amenities.
-        Réponse 400 : champ invalide (price <= 0, lat hors range...) ou owner introuvable.
+        Règle : owner_id dans le body DOIT correspondre à l'utilisateur connecté (JWT).
+        Réponse 201 : le lieu créé.
+        Réponse 400 : données invalides.
+        Réponse 403 : owner_id ne correspond pas au JWT.
         """
+        current_user_id = get_jwt_identity()
+
+        # Un utilisateur ne peut créer un lieu qu'en son propre nom
+        if api.payload.get("owner_id") != current_user_id:
+            api.abort(403, "Vous ne pouvez créer un lieu qu'en votre propre nom.")
+
         try:
             place = facade.create_place(api.payload)
         except (ValueError, KeyError) as e:
@@ -144,16 +150,23 @@ class PlaceResource(Resource):
     def put(self, place_id):
         """
         PUT /api/v1/places/<place_id>
-        Met à jour un lieu existant. Nécessite un JWT valide.
+        Met à jour un lieu. JWT requis.
 
-        Body attendu : un ou plusieurs champs à modifier.
+        Règle : seul le propriétaire du lieu peut le modifier.
         Réponse 200 : le lieu mis à jour.
-        Réponse 404 : si l'id n'existe pas.
-        Réponse 400 : si les données sont invalides.
+        Réponse 403 : l'utilisateur connecté n'est pas le propriétaire.
+        Réponse 404 : lieu introuvable.
+        Réponse 400 : données invalides.
         """
+        current_user_id = get_jwt_identity()
+
         place = facade.get_place(place_id)
         if not place:
             api.abort(404, f"Lieu '{place_id}' introuvable.")
+
+        # Contrôle d'ownership : seul le propriétaire peut modifier
+        if place.owner.id != current_user_id:
+            api.abort(403, "Vous n'êtes pas le propriétaire de ce lieu.")
 
         try:
             updated = facade.update_place(place_id, api.payload)

@@ -131,6 +131,16 @@ class HBnBFacade:
     def get_reviews_by_place(self, place_id: str) -> list:
         return [r for r in self._reviews.get_all() if r.place.id == place_id]
 
+    def get_review_by_user_and_place(self, user_id: str, place_id: str):
+        """
+        Retourne la review d'un utilisateur pour un lieu donné, ou None.
+        Utilisé pour empêcher les reviews en double.
+        """
+        for r in self._reviews.get_all():
+            if r.user.id == user_id and r.place.id == place_id:
+                return r
+        return None
+
     def update_review(self, review_id: str, data: dict) -> Review:
         return self._reviews.update(review_id, data)
 
