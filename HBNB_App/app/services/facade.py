@@ -1,21 +1,31 @@
 """
-Facade (Task 0 + Task 1).
+Facade — Tasks 0-5.
 
 Le Facade est le SEUL point d'entrée entre la couche Présentation (API)
 et la couche Business Logic + Persistence.
 Il évite que les endpoints Flask connaissent les modèles ou le repository.
+
+Migration vers SQLAlchemy (tâche 5) :
+  - self._users utilise désormais SQLAlchemyRepository (persistance DB).
+  - Les autres entités (places, reviews, amenities) restent en InMemoryRepository
+    en attendant que leurs modèles soient mappés (tâche 6).
 """
 
 from app.models.user import User
 from app.models.place import Place
 from app.models.review import Review
 from app.models.amenity import Amenity
-from app.persistence.repository import InMemoryRepository
+from app.persistence.repository import InMemoryRepository, SQLAlchemyRepository
 
 
 class HBnBFacade:
     def __init__(self):
-        self._users = InMemoryRepository()
+        # Users : persistance base de données via SQLAlchemy
+        # Prérequis : User doit hériter de db.Model (tâche 6)
+        self._users = SQLAlchemyRepository(User)
+
+        # Places, Reviews, Amenities : toujours en mémoire
+        # Seront migrés vers SQLAlchemyRepository lors du mapping des modèles (tâche 6)
         self._places = InMemoryRepository()
         self._reviews = InMemoryRepository()
         self._amenities = InMemoryRepository()
@@ -39,6 +49,10 @@ class HBnBFacade:
     def get_user(self, user_id: str) -> User:
         return self._users.get(user_id)
 
+    def get_user_by_email(self, email: str) -> User:
+        """Récupère un utilisateur par son email. Utilisé pour l'authentification."""
+        return self._users.get_by_attribute("email", email)
+
     def get_all_users(self) -> list:
         return self._users.get_all()
 
@@ -48,6 +62,14 @@ class HBnBFacade:
             existing = self._users.get_by_attribute("email", data["email"])
             if existing and existing.id != user_id:
                 raise ValueError("Cet email est déjà utilisé par un autre utilisateur.")
+
+        # Le password doit être haché via hash_password(), pas setattr() direct
+        # On le traite avant d'appeler le repository générique
+        if "password" in data:
+            user = self._users.get(user_id)
+            if user:
+                user.hash_password(data.pop("password"))
+
         return self._users.update(user_id, data)
 
     # ══════════════════════════════════════════════════
@@ -126,6 +148,16 @@ class HBnBFacade:
 
     def get_reviews_by_place(self, place_id: str) -> list:
         return [r for r in self._reviews.get_all() if r.place.id == place_id]
+
+    def get_review_by_user_and_place(self, user_id: str, place_id: str):
+        """
+        Retourne la review d'un utilisateur pour un lieu donné, ou None.
+        Utilisé pour empêcher les reviews en double.
+        """
+        for r in self._reviews.get_all():
+            if r.user.id == user_id and r.place.id == place_id:
+                return r
+        return None
 
     def update_review(self, review_id: str, data: dict) -> Review:
         return self._reviews.update(review_id, data)
