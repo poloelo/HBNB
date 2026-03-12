@@ -17,6 +17,7 @@ from app.models.base_model import BaseModel
 from app.extensions import db
 
 
+
 # ══════════════════════════════════════════════════════════════════════════════
 #  InMemoryRepository — backend dict Python
 # ══════════════════════════════════════════════════════════════════════════════
@@ -135,4 +136,32 @@ class SQLAlchemyRepository:
         """
         return db.session.execute(
             db.select(self.model).where(getattr(self.model, attr) == value)
+        ).scalars().first()
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  UserRepository — spécialisation pour la colonne email
+# ══════════════════════════════════════════════════════════════════════════════
+
+class UserRepository(SQLAlchemyRepository):
+    """
+    Repository spécialisé pour User.
+
+    Hérite de SQLAlchemyRepository et ajoute get_by_email() qui interroge
+    directement la colonne 'email' du modèle User via SQLAlchemy.
+    On importe User ici (import tardif) pour éviter les imports circulaires
+    au niveau du module.
+    """
+
+    def __init__(self):
+        from app.models.user import User
+        super().__init__(User)
+
+    def get_by_email(self, email: str):
+        """
+        Retourne l'utilisateur correspondant à l'email donné, ou None.
+        Utilisé par la Facade pour l'authentification et la vérification d'unicité.
+        """
+        return db.session.execute(
+            db.select(self.model).where(self.model.email == email)
         ).scalars().first()

@@ -35,4 +35,9 @@ def create_app(config_class=DevelopmentConfig):
     api.add_namespace(reviews_ns,   path='/reviews')
     api.add_namespace(auth_ns,      path='/auth')
 
+    # Création des tables SQLAlchemy au démarrage (si elles n'existent pas encore).
+    # Seul le modèle User possède __tablename__, donc seule la table 'users' est créée.
+    with app.app_context():
+        db.create_all()
+
     return app
