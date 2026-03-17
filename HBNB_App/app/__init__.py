@@ -36,7 +36,7 @@ def create_app(config_class=DevelopmentConfig):
     api.add_namespace(auth_ns,      path='/auth')
 
     # Création des tables SQLAlchemy au démarrage (si elles n'existent pas encore).
-    # Seul le modèle User possède __tablename__, donc seule la table 'users' est créée.
+    # Les modèles User, Place, Review et Amenity sont mappés → leurs tables sont créées.
     with app.app_context():
         db.create_all()
 

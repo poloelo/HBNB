@@ -1,65 +1,86 @@
+from sqlalchemy.orm import validates, relationship
 from .base_model import BaseModel
+from app.extensions import db
 
 
 class Review(BaseModel):
-    __abstract__ = True
     """
-    Représente un avis laissé par un utilisateur sur un lieu.
+    Représente un avis laissé par un utilisateur sur un lieu — mappé SQLAlchemy.
 
-    Attributs :
-    - text   : obligatoire, contenu de l'avis
-    - rating : entier entre 1 et 5
-    - place  : instance Place — relation many-to-one
-    - user   : instance User — relation many-to-one
+    Table 'reviews' : colonnes id/created_at/updated_at héritées de BaseModel.
+    Colonnes propres :
+    - text     : obligatoire, contenu de l'avis
+    - rating   : entier entre 1 et 5
+    - place_id : FK → places.id
+    - user_id  : FK → users.id
+
+    Relations :
+    - place : many-to-one → Place (back_populates='reviews')
+    - user  : many-to-one → User  (back_populates='reviews')
     """
 
-    def __init__(self, text: str, rating: int, place, user):
+    __tablename__ = 'reviews'
+
+    text     = db.Column(db.String(2048), nullable=False)
+    rating   = db.Column(db.Integer, nullable=False)
+    place_id = db.Column(
+        db.String(36),
+        db.ForeignKey('places.id'),
+        nullable=False
+    )
+    user_id  = db.Column(
+        db.String(36),
+        db.ForeignKey('users.id'),
+        nullable=False
+    )
+
+    # ── Relations ──────────────────────────────────────────────────────────────
+    place = relationship('Place', back_populates='reviews')
+    user  = relationship('User',  back_populates='reviews')
+
+    def __init__(self, text: str, rating: int, place_id: str, user_id: str):
         super().__init__()
-        self.text = text
-        self.rating = rating
-        self.place = place   # objet Place complet
-        self.user = user     # objet User complet
+        self.text     = text
+        self.rating   = rating
+        self.place_id = place_id
+        self.user_id  = user_id
 
-        # La place garde une référence vers ses reviews
-        place.add_review(self)
+    # ── Validation via SQLAlchemy @validates ───────────────────────────────────
 
-    # ── text ───────────────────────────────────────────────────────────────
-    @property
-    def text(self):
-        return self._text
-
-    @text.setter
-    def text(self, value):
+    @validates('text')
+    def validate_text(self, key, value):
         if not value or not isinstance(value, str):
             raise ValueError("text est obligatoire et doit être une chaîne.")
-        self._text = value
+        return value
 
-    # ── rating ─────────────────────────────────────────────────────────────
-    @property
-    def rating(self):
-        return self._rating
-
-    @rating.setter
-    def rating(self, value):
+    @validates('rating')
+    def validate_rating(self, key, value):
         try:
             value = int(value)
         except (TypeError, ValueError):
             raise ValueError("rating doit être un entier.")
         if not (1 <= value <= 5):
             raise ValueError("rating doit être compris entre 1 et 5.")
-        self._rating = value
+        return value
+
+    @validates('place_id')
+    def validate_place_id(self, key, value):
+        if not value or not isinstance(value, str):
+            raise ValueError("place_id est obligatoire.")
+        return value
+
+    @validates('user_id')
+    def validate_user_id(self, key, value):
+        if not value or not isinstance(value, str):
+            raise ValueError("user_id est obligatoire.")
+        return value
 
     def to_dict(self):
         base = super().to_dict()
         base.update({
-            "text": self.text,
-            "rating": self.rating,
-            # On expose les infos clés de la place et de l'auteur directement
-            "place_id": self.place.id,
-            "user": {
-                "id": self.user.id,
-                "first_name": self.user.first_name,
-                "last_name": self.user.last_name,
-            },
+            "text":     self.text,
+            "rating":   self.rating,
+            "place_id": self.place_id,
+            "user_id":  self.user_id,
         })
         return base

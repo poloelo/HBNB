@@ -1,31 +1,32 @@
+from sqlalchemy.orm import validates
 from .base_model import BaseModel
+from app.extensions import db
 
 
 class Amenity(BaseModel):
-    __abstract__ = True
     """
-    Représente un équipement/service disponible dans un lieu.
-    Exemples : Wi-Fi, piscine, parking, climatisation...
+    Représente un équipement/service disponible dans un lieu — mappé SQLAlchemy.
 
-    Attributs :
+    Table 'amenities' : colonnes id/created_at/updated_at héritées de BaseModel.
+    Colonnes propres :
     - name : obligatoire, max 50 caractères
     """
 
+    __tablename__ = 'amenities'
+
+    name = db.Column(db.String(50), nullable=False)
+
     def __init__(self, name: str):
         super().__init__()
-        self.name = name  # setter valide
+        self.name = name
 
-    @property
-    def name(self):
-        return self._name
-
-    @name.setter
-    def name(self, value):
+    @validates('name')
+    def validate_name(self, key, value):
         if not value or not isinstance(value, str):
             raise ValueError("name est obligatoire et doit être une chaîne.")
         if len(value) > 50:
             raise ValueError("name ne doit pas dépasser 50 caractères.")
-        self._name = value
+        return value
 
     def to_dict(self):
         base = super().to_dict()

@@ -2,14 +2,17 @@
 Persistence layer — Repository pattern.
 
 Deux implémentations de la même interface :
-  - InMemoryRepository  : stockage dict Python (utilisé pour Places, Reviews, Amenities)
-  - SQLAlchemyRepository: stockage base de données via SQLAlchemy (utilisé pour Users)
+  - InMemoryRepository  : stockage dict Python
+  - SQLAlchemyRepository: stockage base de données via SQLAlchemy
 
 Les deux exposent exactement les mêmes méthodes, ce qui permet à la Facade
 de les utiliser de façon interchangeable sans connaître le backend.
 
-NOTE : SQLAlchemyRepository nécessite que les modèles soient mappés avec
-SQLAlchemy (db.Model). Ce mapping est réalisé dans la tâche suivante.
+Repositories spécialisés :
+  - UserRepository    : ajoute get_by_email()
+  - PlaceRepository   : wrapper SQLAlchemy pour Place
+  - ReviewRepository  : ajoute get_by_place_id() et get_by_user_and_place()
+  - AmenityRepository : wrapper SQLAlchemy pour Amenity
 """
 
 from typing import Optional
@@ -165,3 +168,60 @@ class UserRepository(SQLAlchemyRepository):
         return db.session.execute(
             db.select(self.model).where(self.model.email == email)
         ).scalars().first()
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  PlaceRepository
+# ══════════════════════════════════════════════════════════════════════════════
+
+class PlaceRepository(SQLAlchemyRepository):
+    """Repository SQLAlchemy pour le modèle Place."""
+
+    def __init__(self):
+        from app.models.place import Place
+        super().__init__(Place)
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  ReviewRepository
+# ══════════════════════════════════════════════════════════════════════════════
+
+class ReviewRepository(SQLAlchemyRepository):
+    """
+    Repository SQLAlchemy pour le modèle Review.
+
+    Méthodes supplémentaires :
+    - get_by_place_id()       : retourne tous les avis d'un lieu
+    - get_by_user_and_place() : retourne l'avis d'un utilisateur pour un lieu
+    """
+
+    def __init__(self):
+        from app.models.review import Review
+        super().__init__(Review)
+
+    def get_by_place_id(self, place_id: str) -> list:
+        """Retourne tous les avis associés à un lieu donné."""
+        return db.session.execute(
+            db.select(self.model).where(self.model.place_id == place_id)
+        ).scalars().all()
+
+    def get_by_user_and_place(self, user_id: str, place_id: str):
+        """Retourne l'avis d'un utilisateur pour un lieu, ou None."""
+        return db.session.execute(
+            db.select(self.model).where(
+                self.model.user_id == user_id,
+                self.model.place_id == place_id
+            )
+        ).scalars().first()
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  AmenityRepository
+# ══════════════════════════════════════════════════════════════════════════════
+
+class AmenityRepository(SQLAlchemyRepository):
+    """Repository SQLAlchemy pour le modèle Amenity."""
+
+    def __init__(self):
+        from app.models.amenity import Amenity
+        super().__init__(Amenity)
