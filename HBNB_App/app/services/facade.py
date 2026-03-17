@@ -100,6 +100,13 @@ class HBnBFacade:
             owner_id=data["owner_id"],
             description=data.get("description", ""),
         )
+
+        # Liaison des amenities via la relation many-to-many
+        for amenity_id in data.get("amenities", []):
+            amenity = self._amenities.get(amenity_id)
+            if amenity:
+                place.add_amenity(amenity)
+
         self._places.add(place)
         return place
 

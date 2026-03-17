@@ -1,5 +1,5 @@
 import re
-from sqlalchemy.orm import validates
+from sqlalchemy.orm import validates, relationship
 from .base_model import BaseModel
 from app.extensions import bcrypt, db
 
@@ -15,6 +15,10 @@ class User(BaseModel):
     - password   : stocké haché (bcrypt), jamais exposé en clair
     - is_admin   : booléen, False par défaut
 
+    Relations :
+    - places  : one-to-many → Place  (back_populates='owner',  cascade delete)
+    - reviews : one-to-many → Review (back_populates='user',   cascade delete)
+
     La validation passe par les décorateurs @validates de SQLAlchemy,
     déclenchés automatiquement à chaque assignation de colonne.
     """
@@ -27,6 +31,20 @@ class User(BaseModel):
     # Colonne DB nommée 'password', accessible en Python via self._password
     _password  = db.Column('password', db.String(128), nullable=False)
     is_admin   = db.Column(db.Boolean, nullable=False, default=False)
+
+    # ── Relations ──────────────────────────────────────────────────────────────
+    places  = relationship(
+        'Place',
+        back_populates='owner',
+        lazy='select',
+        cascade='all, delete-orphan'
+    )
+    reviews = relationship(
+        'Review',
+        back_populates='user',
+        lazy='select',
+        cascade='all, delete-orphan'
+    )
 
     def __init__(self, first_name: str, last_name: str, email: str,
                  password: str, is_admin: bool = False):

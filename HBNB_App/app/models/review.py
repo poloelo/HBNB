@@ -1,4 +1,4 @@
-from sqlalchemy.orm import validates
+from sqlalchemy.orm import validates, relationship
 from .base_model import BaseModel
 from app.extensions import db
 
@@ -11,18 +11,32 @@ class Review(BaseModel):
     Colonnes propres :
     - text     : obligatoire, contenu de l'avis
     - rating   : entier entre 1 et 5
-    - place_id : UUID du lieu (String, sans FK pour l'instant)
-    - user_id  : UUID de l'auteur (String, sans FK pour l'instant)
+    - place_id : FK → places.id
+    - user_id  : FK → users.id
 
-    Les relations (place, user) seront ajoutées dans une tâche ultérieure.
+    Relations :
+    - place : many-to-one → Place (back_populates='reviews')
+    - user  : many-to-one → User  (back_populates='reviews')
     """
 
     __tablename__ = 'reviews'
 
     text     = db.Column(db.String(2048), nullable=False)
     rating   = db.Column(db.Integer, nullable=False)
-    place_id = db.Column(db.String(36), nullable=False)
-    user_id  = db.Column(db.String(36), nullable=False)
+    place_id = db.Column(
+        db.String(36),
+        db.ForeignKey('places.id'),
+        nullable=False
+    )
+    user_id  = db.Column(
+        db.String(36),
+        db.ForeignKey('users.id'),
+        nullable=False
+    )
+
+    # ── Relations ──────────────────────────────────────────────────────────────
+    place = relationship('Place', back_populates='reviews')
+    user  = relationship('User',  back_populates='reviews')
 
     def __init__(self, text: str, rating: int, place_id: str, user_id: str):
         super().__init__()

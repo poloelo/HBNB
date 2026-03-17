@@ -1,6 +1,25 @@
-from sqlalchemy.orm import validates
+from sqlalchemy.orm import validates, relationship
 from .base_model import BaseModel
 from app.extensions import db
+
+
+# ── Table d'association many-to-many Place ↔ Amenity ──────────────────────────
+# Pas de modèle dédié : SQLAlchemy gère directement la table pivot.
+place_amenity = db.Table(
+    'place_amenity',
+    db.Column(
+        'place_id',
+        db.String(36),
+        db.ForeignKey('places.id'),
+        primary_key=True
+    ),
+    db.Column(
+        'amenity_id',
+        db.String(36),
+        db.ForeignKey('amenities.id'),
+        primary_key=True
+    )
+)
 
 
 class Place(BaseModel):
@@ -14,9 +33,12 @@ class Place(BaseModel):
     - price       : obligatoire, float > 0
     - latitude    : float entre -90 et 90
     - longitude   : float entre -180 et 180
-    - owner_id    : UUID du propriétaire (String, sans FK pour l'instant)
+    - owner_id    : FK → users.id
 
-    Les relations (owner, amenities, reviews) seront ajoutées dans une tâche ultérieure.
+    Relations :
+    - owner     : many-to-one → User  (back_populates='places')
+    - reviews   : one-to-many → Review (back_populates='place', cascade delete)
+    - amenities : many-to-many ↔ Amenity (via place_amenity, backref='places')
     """
 
     __tablename__ = 'places'
@@ -26,7 +48,29 @@ class Place(BaseModel):
     price       = db.Column(db.Float, nullable=False)
     latitude    = db.Column(db.Float, nullable=False)
     longitude   = db.Column(db.Float, nullable=False)
-    owner_id    = db.Column(db.String(36), nullable=False)
+    owner_id    = db.Column(
+        db.String(36),
+        db.ForeignKey('users.id'),
+        nullable=False
+    )
+
+    # ── Relations ──────────────────────────────────────────────────────────────
+    owner = relationship(
+        'User',
+        back_populates='places'
+    )
+    reviews = relationship(
+        'Review',
+        back_populates='place',
+        lazy='select',
+        cascade='all, delete-orphan'
+    )
+    amenities = relationship(
+        'Amenity',
+        secondary=place_amenity,
+        lazy='select',
+        backref=db.backref('places', lazy='select')
+    )
 
     def __init__(self, title: str, price: float, latitude: float,
                  longitude: float, owner_id: str, description: str = ""):
@@ -84,6 +128,13 @@ class Place(BaseModel):
             raise ValueError("owner_id est obligatoire.")
         return value
 
+    # ── Méthodes utilitaires ───────────────────────────────────────────────────
+
+    def add_amenity(self, amenity):
+        """Lie un équipement à ce lieu (many-to-many via place_amenity)."""
+        if amenity not in self.amenities:
+            self.amenities.append(amenity)
+
     def to_dict(self):
         base = super().to_dict()
         base.update({
@@ -93,5 +144,6 @@ class Place(BaseModel):
             "latitude":    self.latitude,
             "longitude":   self.longitude,
             "owner_id":    self.owner_id,
+            "amenities":   [{"id": a.id, "name": a.name} for a in self.amenities],
         })
         return base
