@@ -21,9 +21,9 @@ class DevelopmentConfig(Config):
 class ProductionConfig(Config):
     """Production configuration"""
     DEBUG = False
-    # En production, DATABASE_URL doit être définie explicitement (ex: MySQL).
-    # L'absence de la variable lève une KeyError au démarrage, ce qui est voulu.
-    SQLALCHEMY_DATABASE_URI = os.environ['DATABASE_URL']
+    # En production, DATABASE_URL doit être définie (ex: mysql+pymysql://...).
+    # Si absente, vaut None → SQLAlchemy lèvera une erreur claire au premier accès DB.
+    SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL')
 
 config = {
     'development': DevelopmentConfig,
