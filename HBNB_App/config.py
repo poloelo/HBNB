@@ -21,8 +21,9 @@ class DevelopmentConfig(Config):
 class ProductionConfig(Config):
     """Production configuration"""
     DEBUG = False
-    # En production, la DB est fournie par la variable d'environnement DATABASE_URL
-    SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL', 'sqlite:///hbnb_prod.db')
+    # En production, DATABASE_URL doit être définie explicitement (ex: MySQL).
+    # L'absence de la variable lève une KeyError au démarrage, ce qui est voulu.
+    SQLALCHEMY_DATABASE_URI = os.environ['DATABASE_URL']
 
 config = {
     'development': DevelopmentConfig,
