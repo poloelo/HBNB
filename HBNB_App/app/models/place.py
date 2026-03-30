@@ -144,6 +144,12 @@ class Place(BaseModel):
             "latitude":    self.latitude,
             "longitude":   self.longitude,
             "owner_id":    self.owner_id,
+            "owner": {
+                "id":         self.owner.id,
+                "first_name": self.owner.first_name,
+                "last_name":  self.owner.last_name,
+                "email":      self.owner.email,
+            } if self.owner else None,
             "amenities":   [{"id": a.id, "name": a.name} for a in self.amenities],
         })
         return base

@@ -64,7 +64,8 @@ CREATE TABLE IF NOT EXISTS amenities (
     updated_at DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
     name       VARCHAR(50) NOT NULL,
 
-    PRIMARY KEY (id)
+    PRIMARY KEY (id),
+    CONSTRAINT uq_amenities_name UNIQUE (name)
 );
 
 -- -----------------------------------------------------------------------------
