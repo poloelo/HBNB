@@ -117,6 +117,21 @@ class HBnBFacade:
         return self._places.get_all()
 
     def update_place(self, place_id: str, data: dict):
+        data = dict(data)
+        amenity_ids = data.pop("amenities", None)
+
+        place = self._places.get(place_id)
+        if not place:
+            return None
+
+        if amenity_ids is not None:
+            amenities = []
+            for aid in amenity_ids:
+                amenity = self._amenities.get(aid)
+                if amenity:
+                    amenities.append(amenity)
+            place.amenities = amenities
+
         return self._places.update(place_id, data)
 
     # ══════════════════════════════════════════════════
