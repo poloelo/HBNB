@@ -1,6 +1,11 @@
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from app.extensions import db
+
+
+def _utcnow() -> datetime:
+    """Retourne l'heure UTC courante en datetime naïf (compatible SQLite/MySQL)."""
+    return datetime.now(timezone.utc).replace(tzinfo=None)
 
 
 class BaseModel(db.Model):
@@ -9,8 +14,6 @@ class BaseModel(db.Model):
 
     __abstract__ = True : SQLAlchemy ne crée PAS de table pour BaseModel lui-même.
     Les sous-classes qui définissent __tablename__ obtiennent leurs propres tables.
-    Les sous-classes sans __tablename__ (Place, Review, Amenity) héritent aussi de
-    __abstract__ via Python et ne sont pas mappées — elles fonctionnent en mémoire.
 
     Colonnes communes :
       id         : UUID v4 en string (36 car.), clé primaire
@@ -28,13 +31,13 @@ class BaseModel(db.Model):
     created_at = db.Column(
         db.DateTime,
         nullable=False,
-        default=datetime.utcnow
+        default=_utcnow
     )
     updated_at = db.Column(
         db.DateTime,
         nullable=False,
-        default=datetime.utcnow,
-        onupdate=datetime.utcnow
+        default=_utcnow,
+        onupdate=_utcnow
     )
 
     def __init__(self):
@@ -45,12 +48,12 @@ class BaseModel(db.Model):
         Les valeurs sont donc aussi gérées par les 'default' des colonnes.
         """
         self.id = str(uuid.uuid4())
-        self.created_at = datetime.utcnow()
-        self.updated_at = datetime.utcnow()
+        self.created_at = _utcnow()
+        self.updated_at = _utcnow()
 
     def save(self):
         """Met à jour le timestamp 'updated_at' à chaque modification."""
-        self.updated_at = datetime.utcnow()
+        self.updated_at = _utcnow()
 
     def to_dict(self):
         """

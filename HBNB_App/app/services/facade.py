@@ -52,15 +52,18 @@ class HBnBFacade:
         return self._users.get_all()
 
     def update_user(self, user_id: str, data: dict):
+        user = self._users.get(user_id)
+        if not user:
+            raise ValueError(f"Utilisateur '{user_id}' introuvable.")
+
         if "email" in data:
             existing = self._users.get_by_email(data["email"])
             if existing and existing.id != user_id:
                 raise ValueError("Cet email est déjà utilisé par un autre utilisateur.")
 
+        data = dict(data)   # copie défensive pour ne pas muter le dict appelant
         if "password" in data:
-            user = self._users.get(user_id)
-            if user:
-                user.hash_password(data.pop("password"))
+            user.hash_password(data.pop("password"))
 
         return self._users.update(user_id, data)
 
@@ -68,6 +71,10 @@ class HBnBFacade:
     #  AMENITIES
     # ══════════════════════════════════════════════════
     def create_amenity(self, data: dict):
+        # Vérifier l'unicité du nom (insensible à la casse)
+        existing = self._amenities.get_by_attribute("name", data["name"])
+        if existing:
+            raise ValueError(f"Un amenity avec le nom '{data['name']}' existe déjà.")
         from app.models.amenity import Amenity
         amenity = Amenity(name=data["name"])
         self._amenities.add(amenity)

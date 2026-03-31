@@ -18,6 +18,7 @@ Repositories spécialisés :
 from typing import Optional
 from app.models.base_model import BaseModel
 from app.extensions import db
+from sqlalchemy.exc import IntegrityError
 
 
 
@@ -89,9 +90,14 @@ class SQLAlchemyRepository:
         """
         Ajoute un objet en base de données.
         db.session.add() + db.session.commit() rendent la transaction permanente.
+        Lève ValueError si une contrainte d'unicité est violée (ex: email dupliqué).
         """
-        db.session.add(obj)
-        db.session.commit()
+        try:
+            db.session.add(obj)
+            db.session.commit()
+        except IntegrityError as e:
+            db.session.rollback()
+            raise ValueError(f"Violation de contrainte d'unicité : {e.orig}") from e
 
     def get(self, id: str):
         """
@@ -106,13 +112,18 @@ class SQLAlchemyRepository:
         Met à jour un objet existant.
         setattr() modifie les attributs, puis commit() persiste les changements.
         obj.save() met à jour le champ updated_at (défini dans BaseModel).
+        Lève ValueError si une contrainte d'unicité est violée (ex: email dupliqué).
         """
         obj = self.get(obj_id)
         if obj:
             for key, value in data.items():
                 setattr(obj, key, value)
             obj.save()
-            db.session.commit()
+            try:
+                db.session.commit()
+            except IntegrityError as e:
+                db.session.rollback()
+                raise ValueError(f"Violation de contrainte d'unicité : {e.orig}") from e
         return obj
 
     def get_all(self) -> list:
