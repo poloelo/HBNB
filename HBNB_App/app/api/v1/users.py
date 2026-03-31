@@ -15,7 +15,7 @@ DELETE n'est PAS implémenté dans cette partie.
 """
 
 from flask_restx import Namespace, Resource, fields
-from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
+from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt, verify_jwt_in_request
 from app.services import facade
 
 # ── Namespace ──────────────────────────────────────────────────────────────────
@@ -86,9 +86,11 @@ class UserList(Resource):
         """
         data = dict(api.payload)
 
-        # Seul un admin peut créer un utilisateur avec is_admin=True
-        # Sans token valide, is_admin est ignoré (forcé False)
+        # Seul un admin peut créer un utilisateur avec is_admin=True.
+        # verify_jwt_in_request(optional=True) decode le token s'il est présent
+        # sans lever d'erreur si absent. get_jwt() retourne ensuite les claims.
         try:
+            verify_jwt_in_request(optional=True)
             claims = get_jwt()
             caller_is_admin = claims.get("is_admin", False)
         except Exception:
