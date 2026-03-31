@@ -62,7 +62,8 @@ class ReviewList(Resource):
           - L'auteur ne peut pas avoir déjà évalué ce lieu → 400.
         """
         current_user_id = get_jwt_identity()
-        data = api.payload
+        # Copie explicite pour ne pas muter api.payload (objet partagé Flask-RESTX)
+        data = dict(api.payload)
 
         # Vérifier que le lieu existe
         place = facade.get_place(data["place_id"])
@@ -127,11 +128,15 @@ class ReviewDetail(Resource):
         if not is_admin and review.user.id != current_user_id:
             api.abort(403, "Vous ne pouvez modifier que vos propres avis.")
 
-        data = api.payload
+        data = dict(api.payload)
         if not data:
             api.abort(400, "Aucun champ à mettre à jour.")
 
-        updated = facade.update_review(review_id, data)
+        try:
+            updated = facade.update_review(review_id, data)
+        except ValueError as e:
+            api.abort(400, str(e))
+
         return updated.to_dict(), 200
 
     @jwt_required()

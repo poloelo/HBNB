@@ -36,7 +36,7 @@ amenity_nested_model = api.model(
     },
 )
 
-# ── Modèle d'entrée (création / mise à jour) ───────────────────────────────────
+# ── Modèle d'entrée pour la CRÉATION (POST) ────────────────────────────────────
 place_model = api.model(
     "Place",
     {
@@ -46,6 +46,21 @@ place_model = api.model(
         "latitude":    fields.Float(required=True,   description="Latitude entre -90 et 90"),
         "longitude":   fields.Float(required=True,   description="Longitude entre -180 et 180"),
         "owner_id":    fields.String(required=True,  description="UUID du propriétaire (User)"),
+        "amenities":   fields.List(fields.String,    required=False,
+                                   description="Liste d'UUIDs d'amenities"),
+    },
+)
+
+# ── Modèle d'entrée pour la MISE À JOUR (PUT) — tous les champs optionnels ─────
+# owner_id intentionnellement exclu : le propriétaire ne peut pas être changé via PUT.
+place_update_model = api.model(
+    "PlaceUpdate",
+    {
+        "title":       fields.String(required=False, description="Titre du lieu (max 100 car.)"),
+        "description": fields.String(required=False, description="Description détaillée"),
+        "price":       fields.Float(required=False,  description="Prix par nuit (> 0)"),
+        "latitude":    fields.Float(required=False,  description="Latitude entre -90 et 90"),
+        "longitude":   fields.Float(required=False,  description="Longitude entre -180 et 180"),
         "amenities":   fields.List(fields.String,    required=False,
                                    description="Liste d'UUIDs d'amenities"),
     },
@@ -147,18 +162,20 @@ class PlaceResource(Resource):
         return place.to_dict(), 200
 
     @jwt_required()
-    @api.expect(place_model, validate=True)
+    @api.expect(place_update_model, validate=True)
     @api.marshal_with(place_response_model)
     def put(self, place_id):
         """
         PUT /api/v1/places/<place_id>
         Met à jour un lieu. JWT requis.
 
-        Règle : seul le propriétaire du lieu peut le modifier.
+        Règles :
+          - Seul le propriétaire du lieu (ou un admin) peut le modifier.
+          - owner_id ne peut pas être modifié via cet endpoint.
         Réponse 200 : le lieu mis à jour.
-        Réponse 403 : l'utilisateur connecté n'est pas le propriétaire.
-        Réponse 404 : lieu introuvable.
         Réponse 400 : données invalides.
+        Réponse 403 : pas le propriétaire.
+        Réponse 404 : lieu introuvable.
         """
         current_user_id = get_jwt_identity()
         is_admin = get_jwt().get("is_admin", False)
@@ -169,11 +186,15 @@ class PlaceResource(Resource):
 
         # Contrôle d'ownership : seul le propriétaire peut modifier.
         # Un admin peut modifier n'importe quel lieu.
-        if not is_admin and place.owner.id != current_user_id:
+        if not is_admin and place.owner_id != current_user_id:
             api.abort(403, "Vous n'êtes pas le propriétaire de ce lieu.")
 
+        data = dict(api.payload)
+        # Sécurité : owner_id ne doit jamais être modifiable via PUT
+        data.pop("owner_id", None)
+
         try:
-            updated = facade.update_place(place_id, api.payload)
+            updated = facade.update_place(place_id, data)
         except ValueError as e:
             api.abort(400, str(e))
 
