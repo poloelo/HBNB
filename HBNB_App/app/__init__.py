@@ -14,13 +14,24 @@ def create_app(config_class=DevelopmentConfig):
     jwt.init_app(app)
     db.init_app(app)
 
+    authorizations = {
+        'Bearer': {
+            'type': 'apiKey',
+            'in': 'header',
+            'name': 'Authorization',
+            'description': "Colle ton JWT ainsi : **Bearer &lt;token&gt;**"
+        }
+    }
+
     api = Api(
         app,
         version='1.0',
         title='HBnB API',
         description='HBnB Application API - Part 3',
         doc='/api/v1/',
-        prefix='/api/v1'
+        prefix='/api/v1',
+        authorizations=authorizations,
+        security='Bearer'
     )
 
     from app.api.v1.amenities import api as amenities_ns
