@@ -19,7 +19,7 @@ def create_app(config_class=DevelopmentConfig):
             'type': 'apiKey',
             'in': 'header',
             'name': 'Authorization',
-            'description': "Colle ton JWT ainsi : **Bearer &lt;token&gt;**"
+            'description': 'Entrez votre token JWT : **Bearer &lt;token&gt;**'
         }
     }
 
