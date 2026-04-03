@@ -6,6 +6,7 @@
     <title>HBNB - Login</title>
     <link rel="icon" type="image/svg+xml" href="images/icon.svg">
     <link rel="stylesheet" href="styles/main.css">
+    <script src="scripts.js" defer></script>
 </head>
 <body>
     <header>
@@ -23,7 +24,7 @@
             <h1>Welcome back</h1>
             <p>Sign in to your HBNB account</p>
 
-            <form action="#" method="post" novalidate>
+            <form id="login-form" action="#" method="post" novalidate>
                 <div class="form-group">
                     <label for="email">Email address</label>
                     <input
@@ -47,6 +48,8 @@
                         autocomplete="current-password"
                     >
                 </div>
+
+                <p id="login-error" class="error-message" role="alert" hidden></p>
 
                 <button type="submit" class="btn-primary login-button">Sign In</button>
             </form>
