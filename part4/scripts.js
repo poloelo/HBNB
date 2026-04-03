@@ -459,6 +459,132 @@ function escapeHTML(str) {
 }
 
 /* ═══════════════════════════════════════════════════════════════
+   ADD REVIEW PAGE  (add_review.html — authenticated only)
+   ═══════════════════════════════════════════════════════════════ */
+
+/**
+ * Check authentication; redirect to index.html if no token found.
+ * @returns {string} JWT token
+ */
+function checkAuthentication() {
+    const token = getCookie('token');
+    if (!token) {
+        window.location.href = 'index.html';
+    }
+    return token;
+}
+
+/**
+ * POST a review to the API.
+ * @param {string} token
+ * @param {string} placeId
+ * @param {string} reviewText
+ * @param {number} rating
+ * @returns {Promise<Response>}
+ */
+async function submitReview(token, placeId, reviewText, rating) {
+    return fetch(`${API_URL}/reviews/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ place_id: placeId, text: reviewText, rating })
+    });
+}
+
+/**
+ * Handle the API response: show success or error feedback.
+ * @param {Response} response
+ * @param {HTMLFormElement} form
+ */
+async function handleResponse(response, form) {
+    const successEl = document.getElementById('review-success');
+    const errorEl   = document.getElementById('review-error');
+
+    if (response.ok) {
+        if (errorEl)   { errorEl.hidden = true; errorEl.textContent = ''; }
+        if (successEl) { successEl.hidden = false; }
+        form.reset();
+    } else {
+        let msg = 'Failed to submit review.';
+        try {
+            const data = await response.json();
+            if (data.message) msg = data.message;
+        } catch (_) { /* keep default */ }
+        if (successEl) successEl.hidden = true;
+        if (errorEl)   { errorEl.textContent = msg; errorEl.hidden = false; }
+    }
+}
+
+function initAddReviewPage() {
+    const reviewForm = document.getElementById('review-form');
+    /* Only run on add_review.html — it has #review-success */
+    if (!reviewForm || !document.getElementById('review-success')) return;
+
+    const token   = checkAuthentication();   /* redirects if not logged in */
+    const placeId = getPlaceIdFromURL();
+
+    /* Update back-link to return to the correct place */
+    const backLink = document.getElementById('back-link');
+    if (backLink && placeId) {
+        backLink.href = `place.html?id=${encodeURIComponent(placeId)}`;
+    }
+
+    /* Fetch and display the place name */
+    if (placeId && token) {
+        fetch(`${API_URL}/places/${placeId}`, {
+            headers: { Authorization: `Bearer ${token}` }
+        })
+            .then((r) => r.ok ? r.json() : null)
+            .then((place) => {
+                const nameEl = document.getElementById('place-name');
+                if (nameEl && place) nameEl.textContent = place.title;
+            })
+            .catch(() => {});
+    }
+
+    reviewForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        const ratingInput = reviewForm.querySelector('input[name="rating"]:checked');
+        const textInput   = document.getElementById('review-text');
+        const errorEl     = document.getElementById('review-error');
+        const successEl   = document.getElementById('review-success');
+
+        /* Reset feedback */
+        if (errorEl)   { errorEl.hidden = true;   errorEl.textContent = ''; }
+        if (successEl) { successEl.hidden = true; }
+
+        if (!ratingInput) {
+            if (errorEl) { errorEl.textContent = 'Please select a rating.'; errorEl.hidden = false; }
+            return;
+        }
+        if (!textInput.value.trim()) {
+            if (errorEl) { errorEl.textContent = 'Please write your review.'; errorEl.hidden = false; }
+            return;
+        }
+
+        if (!placeId) {
+            if (errorEl) { errorEl.textContent = 'No place specified. Go back and try again.'; errorEl.hidden = false; }
+            return;
+        }
+
+        try {
+            const response = await submitReview(
+                token,
+                placeId,
+                textInput.value.trim(),
+                Number(ratingInput.value)
+            );
+            await handleResponse(response, reviewForm);
+        } catch (_) {
+            if (errorEl) { errorEl.textContent = 'Network error. Please try again later.'; errorEl.hidden = false; }
+        }
+    });
+}
+
+/* ═══════════════════════════════════════════════════════════════
    BOOTSTRAP — run the right init depending on the current page
    ═══════════════════════════════════════════════════════════════ */
 
@@ -466,4 +592,5 @@ document.addEventListener('DOMContentLoaded', () => {
     initLoginPage();
     initIndexPage();
     initPlacePage();
+    initAddReviewPage();
 });
