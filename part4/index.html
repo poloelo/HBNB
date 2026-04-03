@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HBNB - Find Your Place</title>
+    <link rel="icon" type="image/svg+xml" href="images/icon.svg">
+    <link rel="stylesheet" href="styles/main.css">
+</head>
+<body>
+    <header>
+        <a href="index.html">
+            <img src="images/logo.svg" alt="HBNB Logo" class="logo">
+        </a>
+        <nav>
+            <a href="index.html" class="active">Places</a>
+            <a href="login.html" class="login-button">Login</a>
+        </nav>
+    </header>
+
+    <main>
+        <h1 class="page-title">Explore Places</h1>
+        <p class="page-subtitle">Discover unique stays around the world</p>
+
+        <section class="filter-bar">
+            <label for="country-filter">Filter by country:</label>
+            <select id="country-filter" name="country">
+                <option value="">All Countries</option>
+                <option value="us">United States</option>
+                <option value="fr">France</option>
+                <option value="jp">Japan</option>
+                <option value="au">Australia</option>
+                <option value="br">Brazil</option>
+            </select>
+        </section>
+
+        <section class="places-grid" aria-label="Available places">
+            <article class="place-card">
+                <img src="images/place1.svg" alt="Cozy Downtown Apartment">
+                <h2>Cozy Downtown Apartment</h2>
+                <p class="location">New York, United States</p>
+                <p class="price">$120 <span>/ night</span></p>
+                <footer class="card-footer">
+                    <a href="place.html" class="details-button">View Details</a>
+                </footer>
+            </article>
+
+            <article class="place-card">
+                <img src="images/place2.svg" alt="Charming Montmartre Studio">
+                <h2>Charming Montmartre Studio</h2>
+                <p class="location">Paris, France</p>
+                <p class="price">$95 <span>/ night</span></p>
+                <footer class="card-footer">
+                    <a href="place.html" class="details-button">View Details</a>
+                </footer>
+            </article>
+
+            <article class="place-card">
+                <img src="images/place3.svg" alt="Modern Shibuya Loft">
+                <h2>Modern Shibuya Loft</h2>
+                <p class="location">Tokyo, Japan</p>
+                <p class="price">$140 <span>/ night</span></p>
+                <footer class="card-footer">
+                    <a href="place.html" class="details-button">View Details</a>
+                </footer>
+            </article>
+
+            <article class="place-card">
+                <img src="images/place1.svg" alt="Beachfront Bondi Retreat">
+                <h2>Beachfront Bondi Retreat</h2>
+                <p class="location">Sydney, Australia</p>
+                <p class="price">$180 <span>/ night</span></p>
+                <footer class="card-footer">
+                    <a href="place.html" class="details-button">View Details</a>
+                </footer>
+            </article>
+
+            <article class="place-card">
+                <img src="images/place2.svg" alt="Cozy Rio Beach House">
+                <h2>Cozy Rio Beach House</h2>
+                <p class="location">Rio de Janeiro, Brazil</p>
+                <p class="price">$85 <span>/ night</span></p>
+                <footer class="card-footer">
+                    <a href="place.html" class="details-button">View Details</a>
+                </footer>
+            </article>
+
+            <article class="place-card">
+                <img src="images/place3.svg" alt="Luxury Central Park View">
+                <h2>Luxury Central Park View</h2>
+                <p class="location">New York, United States</p>
+                <p class="price">$320 <span>/ night</span></p>
+                <footer class="card-footer">
+                    <a href="place.html" class="details-button">View Details</a>
+                </footer>
+            </article>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2024 HBNB. All rights reserved.</p>
+    </footer>
+</body>
+</html>
