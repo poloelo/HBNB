@@ -627,7 +627,17 @@ footer {
     color: #FFB400;
 }
 
-/* ===== Error Message ===== */
+/* ===== Feedback Messages ===== */
+.success-message {
+    color: #1a7a4a;
+    background: #eaf7ef;
+    border: 1px solid #b7dfc8;
+    border-radius: 6px;
+    padding: 10px 14px;
+    font-size: 0.88rem;
+    margin-bottom: 12px;
+}
+
 .error-message {
     color: #c0392b;
     background: #fdecea;

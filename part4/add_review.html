@@ -6,6 +6,7 @@
     <title>HBNB - Add a Review</title>
     <link rel="icon" type="image/svg+xml" href="images/icon.svg">
     <link rel="stylesheet" href="styles/main.css">
+    <script src="scripts.js" defer></script>
 </head>
 <body>
     <header>
@@ -14,32 +15,23 @@
         </a>
         <nav>
             <a href="index.html">Places</a>
-            <a href="login.html" class="login-button">Login</a>
         </nav>
     </header>
 
     <main>
-        <a href="place.html" class="back-link">&#8592; Back to place</a>
+        <a id="back-link" href="index.html" class="back-link">&#8592; Back to place</a>
 
         <section class="add-review">
             <h2>Share your experience</h2>
             <p class="subtitle">
-                You stayed at <strong>Cozy Downtown Apartment</strong> &#8212; tell other guests what you thought!
+                Reviewing: <strong id="place-name">&#8230;</strong>
             </p>
 
-            <form action="#" method="post" class="form" novalidate>
-                <div class="form-group">
-                    <label for="reviewer-name">Your name</label>
-                    <input
-                        type="text"
-                        id="reviewer-name"
-                        name="reviewer_name"
-                        placeholder="Jane Doe"
-                        required
-                        autocomplete="name"
-                    >
-                </div>
+            <p id="review-success" class="success-message" role="status" hidden>
+                Your review has been submitted. Thank you!
+            </p>
 
+            <form id="review-form" action="#" method="post" class="form" novalidate>
                 <div class="form-group">
                     <label>Your rating</label>
                     <div class="rating-group" role="radiogroup" aria-label="Rating">
@@ -67,6 +59,8 @@
                         maxlength="1000"
                     ></textarea>
                 </div>
+
+                <p id="review-error" class="error-message" role="alert" hidden></p>
 
                 <button type="submit" class="btn-primary">Submit Review</button>
             </form>
