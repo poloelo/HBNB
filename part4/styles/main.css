@@ -1,0 +1,667 @@
+/* ===== Reset & Base ===== */
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+:root {
+    --primary: #FF5A5F;
+    --primary-dark: #e04045;
+    --secondary: #00A699;
+    --text-dark: #222222;
+    --text-mid: #484848;
+    --text-light: #767676;
+    --bg: #F7F7F7;
+    --white: #ffffff;
+    --border: #dddddd;
+    --shadow: rgba(0, 0, 0, 0.12);
+    --radius: 10px;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--bg);
+    color: var(--text-dark);
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+/* ===== Header ===== */
+header {
+    background-color: var(--white);
+    border-bottom: 1px solid var(--border);
+    padding: 0 40px;
+    height: 70px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 6px var(--shadow);
+}
+
+.logo {
+    height: 48px;
+    width: auto;
+}
+
+nav {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+}
+
+nav a {
+    color: var(--text-mid);
+    font-size: 0.95rem;
+    font-weight: 500;
+    padding: 6px 0;
+    border-bottom: 2px solid transparent;
+    transition: color 0.2s, border-color 0.2s;
+}
+
+nav a:hover,
+nav a.active {
+    color: var(--primary);
+    border-bottom-color: var(--primary);
+}
+
+.login-button {
+    background-color: var(--primary);
+    color: var(--white) !important;
+    border: none;
+    border-radius: 6px;
+    padding: 9px 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s;
+    border-bottom: none !important;
+}
+
+.login-button:hover {
+    background-color: var(--primary-dark);
+    transform: translateY(-1px);
+}
+
+/* ===== Main Content ===== */
+main {
+    flex: 1;
+    padding: 40px;
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+/* ===== Footer ===== */
+footer {
+    background-color: var(--text-dark);
+    color: var(--white);
+    text-align: center;
+    padding: 20px 40px;
+    font-size: 0.85rem;
+    color: #aaaaaa;
+}
+
+/* ===== Page Titles ===== */
+.page-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin-bottom: 30px;
+}
+
+.page-subtitle {
+    font-size: 1rem;
+    color: var(--text-light);
+    margin-top: -20px;
+    margin-bottom: 30px;
+}
+
+/* ===== Filter Bar (index) ===== */
+.filter-bar {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 32px;
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 20px;
+    box-shadow: 0 2px 6px var(--shadow);
+}
+
+.filter-bar label {
+    font-weight: 600;
+    color: var(--text-mid);
+    font-size: 0.9rem;
+}
+
+.filter-bar select {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 0.9rem;
+    color: var(--text-dark);
+    background: var(--white);
+    cursor: pointer;
+}
+
+/* ===== Places Grid ===== */
+.places-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 24px;
+}
+
+/* ===== Place Card ===== */
+.place-card {
+    background-color: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin: 20px;
+    padding: 10px;
+    box-shadow: 0 2px 8px var(--shadow);
+    transition: box-shadow 0.2s, transform 0.2s;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.place-card:hover {
+    box-shadow: 0 6px 20px var(--shadow);
+    transform: translateY(-3px);
+}
+
+.place-card img {
+    width: calc(100% + 20px);
+    margin: -10px -10px 10px -10px;
+    height: 180px;
+    object-fit: cover;
+}
+
+.place-card h2 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin-bottom: 6px;
+}
+
+.place-card .location {
+    font-size: 0.85rem;
+    color: var(--text-light);
+    margin-bottom: 8px;
+}
+
+.place-card .price {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--primary);
+    margin-bottom: 12px;
+}
+
+.place-card .price span {
+    font-weight: 400;
+    color: var(--text-light);
+    font-size: 0.85rem;
+}
+
+.card-footer {
+    margin-top: auto;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.details-button {
+    background-color: var(--secondary);
+    color: var(--white);
+    border: none;
+    border-radius: 6px;
+    padding: 9px 18px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.details-button:hover {
+    background-color: #008f84;
+    transform: translateY(-1px);
+}
+
+/* ===== Place Details Page ===== */
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--text-light);
+    font-size: 0.9rem;
+    margin-bottom: 24px;
+    transition: color 0.2s;
+}
+
+.back-link:hover {
+    color: var(--primary);
+}
+
+.place-details {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin: 20px;
+    padding: 10px;
+    box-shadow: 0 2px 8px var(--shadow);
+}
+
+.place-details-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 16px;
+    padding: 20px;
+    border-bottom: 1px solid var(--border);
+}
+
+.place-details-header h1 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--text-dark);
+}
+
+.place-details-header .price {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--primary);
+    white-space: nowrap;
+}
+
+.place-details-header .price span {
+    font-size: 0.9rem;
+    font-weight: 400;
+    color: var(--text-light);
+}
+
+.place-image {
+    width: 100%;
+    max-height: 420px;
+    object-fit: cover;
+}
+
+.place-info {
+    padding: 24px;
+}
+
+.place-info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    margin-bottom: 28px;
+}
+
+.info-item {
+    background: var(--bg);
+    border-radius: 8px;
+    padding: 16px;
+    text-align: center;
+}
+
+.info-item .info-label {
+    font-size: 0.75rem;
+    color: var(--text-light);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 4px;
+}
+
+.info-item .info-value {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-dark);
+}
+
+.section-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--bg);
+}
+
+.place-description {
+    color: var(--text-mid);
+    line-height: 1.7;
+    margin-bottom: 28px;
+}
+
+.amenities-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 28px;
+    list-style: none;
+}
+
+.amenities-list li {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-size: 0.85rem;
+    color: var(--text-mid);
+}
+
+/* ===== Reviews ===== */
+.reviews-section {
+    margin-top: 40px;
+}
+
+.reviews-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.add-review-btn {
+    background-color: var(--primary);
+    color: var(--white);
+    border: none;
+    border-radius: 6px;
+    padding: 9px 18px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.add-review-btn:hover {
+    background-color: var(--primary-dark);
+}
+
+.reviews-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+.review-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin: 20px;
+    padding: 10px;
+    box-shadow: 0 2px 6px var(--shadow);
+}
+
+.review-card-inner {
+    padding: 8px;
+}
+
+.review-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.reviewer-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: var(--primary);
+    color: var(--white);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+.reviewer-name {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--text-dark);
+}
+
+.review-date {
+    font-size: 0.8rem;
+    color: var(--text-light);
+}
+
+.star-rating {
+    display: flex;
+    gap: 2px;
+    margin-bottom: 10px;
+}
+
+.star {
+    color: #FFB400;
+    font-size: 1rem;
+}
+
+.star.empty {
+    color: var(--border);
+}
+
+.review-text {
+    font-size: 0.9rem;
+    color: var(--text-mid);
+    line-height: 1.6;
+}
+
+.no-reviews {
+    color: var(--text-light);
+    font-style: italic;
+    padding: 20px 0;
+}
+
+/* ===== Login Page ===== */
+.auth-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: calc(100vh - 140px);
+    padding: 40px 20px;
+}
+
+.auth-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 40px;
+    width: 100%;
+    max-width: 440px;
+    box-shadow: 0 4px 16px var(--shadow);
+}
+
+.auth-card h1 {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin-bottom: 8px;
+    text-align: center;
+}
+
+.auth-card p {
+    color: var(--text-light);
+    font-size: 0.9rem;
+    text-align: center;
+    margin-bottom: 28px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-mid);
+    margin-bottom: 6px;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 11px 14px;
+    font-size: 0.95rem;
+    color: var(--text-dark);
+    background: var(--white);
+    transition: border-color 0.2s, box-shadow 0.2s;
+    font-family: inherit;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(255, 90, 95, 0.15);
+}
+
+.form-group textarea {
+    resize: vertical;
+    min-height: 110px;
+}
+
+.btn-primary {
+    width: 100%;
+    background-color: var(--primary);
+    color: var(--white);
+    border: none;
+    border-radius: 6px;
+    padding: 12px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s;
+}
+
+.btn-primary:hover {
+    background-color: var(--primary-dark);
+    transform: translateY(-1px);
+}
+
+.auth-footer {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 0.85rem;
+    color: var(--text-light);
+}
+
+.auth-footer a {
+    color: var(--primary);
+    font-weight: 600;
+}
+
+/* ===== Add Review Page ===== */
+.add-review {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 32px;
+    max-width: 600px;
+    margin: 0 auto;
+    box-shadow: 0 4px 16px var(--shadow);
+}
+
+.add-review h2 {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin-bottom: 6px;
+}
+
+.add-review .subtitle {
+    color: var(--text-light);
+    font-size: 0.9rem;
+    margin-bottom: 24px;
+}
+
+.add-review .form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.rating-group {
+    display: flex;
+    gap: 8px;
+    flex-direction: row-reverse;
+    justify-content: flex-end;
+}
+
+.rating-group input[type="radio"] {
+    display: none;
+}
+
+.rating-group label {
+    font-size: 1.8rem;
+    color: var(--border);
+    cursor: pointer;
+    transition: color 0.1s;
+}
+
+.rating-group input[type="radio"]:checked ~ label,
+.rating-group label:hover,
+.rating-group label:hover ~ label {
+    color: #FFB400;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+    header {
+        padding: 0 20px;
+    }
+
+    main {
+        padding: 20px;
+    }
+
+    .places-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .place-card {
+        margin: 10px 0;
+    }
+
+    .review-card {
+        margin: 10px 0;
+    }
+
+    .place-details {
+        margin: 10px 0;
+    }
+
+    .place-details-header h1 {
+        font-size: 1.4rem;
+    }
+
+    .auth-card {
+        padding: 24px;
+    }
+
+    .add-review {
+        padding: 24px;
+    }
+}
