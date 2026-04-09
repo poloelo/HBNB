@@ -10,6 +10,7 @@ frontend_bp = Blueprint('frontend', __name__)
 
 
 @frontend_bp.route('/')
+@frontend_bp.route('/index.html')
 def index():
     return send_from_directory(FRONTEND_DIR, 'index.html')
 
