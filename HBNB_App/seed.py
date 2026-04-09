@@ -136,12 +136,16 @@ with app.app_context():
         4
     )
 
-    # Admin commente le chalet d'Alice (avec son ID fixe)
-    add_review_if_not_exists(
-        ADMIN_ID, p3.id,
-        "Chalet authentique et bien équipé. Vue magnifique depuis la terrasse. Parfait pour se ressourcer en montagne.",
-        5
-    )
+    # Admin commente le chalet d'Alice — seulement si l'admin existe en DB
+    admin = facade.get_user(ADMIN_ID)
+    if admin:
+        add_review_if_not_exists(
+            ADMIN_ID, p3.id,
+            "Chalet authentique et bien équipé. Vue magnifique depuis la terrasse. Parfait pour se ressourcer en montagne.",
+            5
+        )
+    else:
+        print("Admin introuvable — revue du chalet ignorée (exécutez initial_data.sql d'abord)")
 
     print("\n✓ Données de test insérées avec succès !")
     print("\nComptes disponibles :")

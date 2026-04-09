@@ -14,7 +14,8 @@ function getTokenPayload() {
     const token = getCookie('token');
     if (!token) return null;
     try {
-        const base64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+        let base64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+        base64 += '=='.slice(0, (4 - base64.length % 4) % 4); // fix padding
         return JSON.parse(atob(base64));
     } catch (_) {
         return null;

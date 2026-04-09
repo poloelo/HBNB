@@ -15,7 +15,6 @@ import uuid
 from flask import request
 from flask_restx import Namespace, Resource, fields
 from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
-from werkzeug.utils import secure_filename
 from app.services import facade
 from app.extensions import db
 
