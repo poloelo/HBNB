@@ -10,22 +10,25 @@
     <header>
       <img src="logo.png" alt="HBnB Logo" class="logo" />
       <nav>
-        <a href="index.html">Home</a>
+        <a href="index.html">Accueil</a>
+        <a href="profile.html" id="profile-link" style="display:none;">Mon Profil</a>
+        <a href="create_place.html" id="add-place-link" style="display:none;" class="nav-cta">+ Créer un lieu</a>
+        <a href="#" id="logout-link" style="display:none;">Déconnexion</a>
         <a href="login.html" id="login-link" class="login-button">Login</a>
       </nav>
     </header>
 
     <main>
-      <h1 class="page-title">Discover Places</h1>
-      <p class="page-subtitle">Find the perfect place for your next adventure</p>
+      <h1 class="page-title">Découvrez des lieux</h1>
+      <p class="page-subtitle">Trouvez l'endroit parfait pour votre prochaine aventure</p>
 
       <div class="filter-bar">
-        <label for="price-filter">Filter by max price:</label>
+        <label for="price-filter">Filtrer par prix max :</label>
         <select id="price-filter">
-          <option value="10">Up to $10</option>
-          <option value="50">Up to $50</option>
-          <option value="100">Up to $100</option>
-          <option value="all" selected>All prices</option>
+          <option value="10">Jusqu'à $10</option>
+          <option value="50">Jusqu'à $50</option>
+          <option value="100">Jusqu'à $100</option>
+          <option value="all" selected>Tous les prix</option>
         </select>
       </div>
 
@@ -36,6 +39,7 @@
       <p>&copy; 2026 HBnB. All rights reserved.</p>
     </footer>
 
+    <script src="nav.js"></script>
     <script src="index.js"></script>
   </body>
 </html>

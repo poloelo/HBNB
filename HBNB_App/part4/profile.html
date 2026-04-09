@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>HBnB - Place Details</title>
+    <title>HBnB - Mon Profil</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
@@ -19,16 +19,20 @@
     </header>
 
     <main>
-      <a href="index.html" class="back-link">&#8592; Retour aux lieux</a>
+      <!-- Carte d'identité utilisateur — remplie par profile.js -->
+      <div id="profile-header" class="profile-header">
+        <div class="profile-avatar">…</div>
+        <div class="profile-info">
+          <h1>Chargement…</h1>
+        </div>
+      </div>
 
-      <article id="place-details" class="place-details"></article>
-
-      <section class="reviews-section">
-        <h2>Avis</h2>
-        <div id="reviews-list"></div>
-      </section>
-
-      <div id="add-review" style="display: none;"></div>
+      <!-- Lieux publiés par l'utilisateur -->
+      <div class="section-header">
+        <h2>Mes lieux publiés</h2>
+        <a href="create_place.html" class="details-button">+ Nouveau lieu</a>
+      </div>
+      <section class="places-grid" id="my-places"></section>
     </main>
 
     <footer>
@@ -36,6 +40,6 @@
     </footer>
 
     <script src="nav.js"></script>
-    <script src="place.js"></script>
+    <script src="profile.js"></script>
   </body>
 </html>

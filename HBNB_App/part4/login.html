@@ -10,32 +10,35 @@
     <header>
       <img src="logo.png" alt="HBnB Logo" class="logo" />
       <nav>
-        <a href="index.html">Home</a>
-        <a href="login.html" class="login-button">Login</a>
+        <a href="index.html">Accueil</a>
+        <a href="profile.html" id="profile-link" style="display:none;">Mon Profil</a>
+        <a href="create_place.html" id="add-place-link" style="display:none;" class="nav-cta">+ Créer un lieu</a>
+        <a href="#" id="logout-link" style="display:none;">Déconnexion</a>
+        <a href="login.html" id="login-link" class="login-button">Login</a>
       </nav>
     </header>
 
     <main>
       <div class="auth-wrapper">
         <div class="auth-card">
-          <h1>Welcome back</h1>
-          <p class="subtitle">Sign in to your HBnB account</p>
+          <h1>Bienvenue</h1>
+          <p class="subtitle">Connectez-vous à votre compte HBnB</p>
 
           <form id="login-form" action="#" method="post" novalidate>
             <div class="form-group">
-              <label for="email">Email address</label>
+              <label for="email">Adresse email</label>
               <input
                 type="email"
                 id="email"
                 name="email"
-                placeholder="you@example.com"
+                placeholder="vous@exemple.com"
                 required
                 autocomplete="email"
               />
             </div>
 
             <div class="form-group">
-              <label for="password">Password</label>
+              <label for="password">Mot de passe</label>
               <input
                 type="password"
                 id="password"
@@ -46,7 +49,7 @@
               />
             </div>
 
-            <button type="submit" class="btn-primary">Sign In</button>
+            <button type="submit" class="btn-primary">Se connecter</button>
           </form>
         </div>
       </div>
@@ -56,6 +59,7 @@
       <p>&copy; 2026 HBnB. All rights reserved.</p>
     </footer>
 
+    <script src="nav.js"></script>
     <script src="login.js"></script>
   </body>
 </html>
