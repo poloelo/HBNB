@@ -14,24 +14,28 @@
         <a href="login.html" id="login-link" class="login-button">Login</a>
       </nav>
     </header>
+
     <main>
       <h1 class="page-title">Discover Places</h1>
       <p class="page-subtitle">Find the perfect place for your next adventure</p>
+
       <div class="filter-bar">
-        <label for="price-filter">Filter by price:</label>
+        <label for="price-filter">Filter by max price:</label>
         <select id="price-filter">
-          <option value="10">$10</option>
-          <option value="50">$50</option>
-          <option value="100">$100</option>
-          <option value="all" selected>All</option>
+          <option value="10">Up to $10</option>
+          <option value="50">Up to $50</option>
+          <option value="100">Up to $100</option>
+          <option value="all" selected>All prices</option>
         </select>
       </div>
-      <section class="places-grid" id="places-list">
-      </section>
+
+      <section class="places-grid" id="places-list"></section>
     </main>
+
     <footer>
       <p>&copy; 2026 HBnB. All rights reserved.</p>
     </footer>
+
     <script src="index.js"></script>
   </body>
 </html>
