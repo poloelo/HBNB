@@ -30,12 +30,10 @@ function initNav() {
     const loginLink  = document.getElementById('login-link');
     const logoutLink = document.getElementById('logout-link');
     const navProfile = document.getElementById('nav-profile');
-    const navNewPlace = document.getElementById('nav-new-place');
 
-    if (loginLink)   loginLink.style.display   = token ? 'none' : '';
-    if (logoutLink)  logoutLink.style.display  = token ? ''     : 'none';
-    if (navProfile)  navProfile.style.display  = token ? ''     : 'none';
-    if (navNewPlace) navNewPlace.style.display = token ? ''     : 'none';
+    if (loginLink)  loginLink.style.display  = token ? 'none' : '';
+    if (logoutLink) logoutLink.style.display = token ? ''     : 'none';
+    if (navProfile) navProfile.style.display = token ? ''     : 'none';
 
     if (logoutLink) {
         logoutLink.addEventListener('click', (e) => {
@@ -196,7 +194,12 @@ function displayPlaces(places) {
         article.className = 'place-card';
         article.dataset.price = place.price;
 
+        const imgHTML = place.image_filename
+            ? `<img src="/${escapeHTML(place.image_filename)}" alt="${escapeHTML(place.title)}" class="place-img">`
+            : `<div class="place-img-placeholder" aria-hidden="true"></div>`;
+
         article.innerHTML = `
+            ${imgHTML}
             <h2>${escapeHTML(place.title)}</h2>
             <p class="price">$${place.price} <span>/ night</span></p>
             <footer class="card-footer">
@@ -319,8 +322,13 @@ function displayPlaceDetails(place) {
         ? `<a href="add_review.html?id=${encodeURIComponent(place.id)}" class="details-button">Add a Review</a>`
         : '';
 
+    const imgHTML = place.image_filename
+        ? `<img src="/${escapeHTML(place.image_filename)}" alt="${escapeHTML(place.title)}" class="place-detail-img">`
+        : '';
+
     container.innerHTML = `
         <article class="place-details">
+            ${imgHTML}
             <header class="place-details-header">
                 <h1>${escapeHTML(place.title)}</h1>
                 <p class="price">$${place.price} <span>/ night</span></p>
@@ -842,6 +850,9 @@ function initCreatePlacePage() {
         const amenityCheckboxes = form.querySelectorAll('input[name="amenities"]:checked');
         const amenities = Array.from(amenityCheckboxes).map((cb) => cb.value);
 
+        const imageFile = document.getElementById('image-file') &&
+                          document.getElementById('image-file').files[0];
+
         try {
             const response = await fetch(`${API_URL}/places/`, {
                 method: 'POST',
@@ -857,6 +868,19 @@ function initCreatePlacePage() {
             });
 
             if (response.ok) {
+                const place = await response.json();
+
+                /* Upload image if one was selected */
+                if (imageFile) {
+                    const formData = new FormData();
+                    formData.append('image', imageFile);
+                    await fetch(`${API_URL}/places/${place.id}/upload`, {
+                        method: 'POST',
+                        headers: { Authorization: `Bearer ${token}` },
+                        body: formData
+                    });
+                }
+
                 form.reset();
                 if (successEl) successEl.hidden = false;
             } else {

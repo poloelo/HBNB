@@ -4,85 +4,40 @@ from app.extensions import db
 
 
 # ── Table d'association many-to-many Place ↔ Amenity ──────────────────────────
-# Pas de modèle dédié : SQLAlchemy gère directement la table pivot.
 place_amenity = db.Table(
     'place_amenity',
-    db.Column(
-        'place_id',
-        db.String(36),
-        db.ForeignKey('places.id'),
-        primary_key=True
-    ),
-    db.Column(
-        'amenity_id',
-        db.String(36),
-        db.ForeignKey('amenities.id'),
-        primary_key=True
-    )
+    db.Column('place_id',   db.String(36), db.ForeignKey('places.id'),   primary_key=True),
+    db.Column('amenity_id', db.String(36), db.ForeignKey('amenities.id'), primary_key=True)
 )
 
 
 class Place(BaseModel):
-    """
-    Représente un lieu à louer dans l'application — mappé SQLAlchemy.
-
-    Table 'places' : colonnes id/created_at/updated_at héritées de BaseModel.
-    Colonnes propres :
-    - title       : obligatoire, max 100 caractères
-    - description : optionnel
-    - price       : obligatoire, float > 0
-    - latitude    : float entre -90 et 90
-    - longitude   : float entre -180 et 180
-    - owner_id    : FK → users.id
-
-    Relations :
-    - owner     : many-to-one → User  (back_populates='places')
-    - reviews   : one-to-many → Review (back_populates='place', cascade delete)
-    - amenities : many-to-many ↔ Amenity (via place_amenity, backref='places')
-    """
-
     __tablename__ = 'places'
 
-    title       = db.Column(db.String(100), nullable=False)
-    description = db.Column(db.String(1024), nullable=True, default="")
-    price       = db.Column(db.Float, nullable=False)
-    latitude    = db.Column(db.Float, nullable=False)
-    longitude   = db.Column(db.Float, nullable=False)
-    owner_id    = db.Column(
-        db.String(36),
-        db.ForeignKey('users.id'),
-        nullable=False
-    )
+    title          = db.Column(db.String(100),  nullable=False)
+    description    = db.Column(db.String(1024), nullable=True,  default="")
+    price          = db.Column(db.Float,         nullable=False)
+    latitude       = db.Column(db.Float,         nullable=False)
+    longitude      = db.Column(db.Float,         nullable=False)
+    owner_id       = db.Column(db.String(36),   db.ForeignKey('users.id'), nullable=False)
+    image_filename = db.Column(db.String(255),   nullable=True)
 
     # ── Relations ──────────────────────────────────────────────────────────────
-    owner = relationship(
-        'User',
-        back_populates='places'
-    )
-    reviews = relationship(
-        'Review',
-        back_populates='place',
-        lazy='select',
-        cascade='all, delete-orphan'
-    )
-    amenities = relationship(
-        'Amenity',
-        secondary=place_amenity,
-        lazy='select',
-        backref=db.backref('places', lazy='select')
-    )
+    owner = relationship('User', back_populates='places')
+    reviews = relationship('Review', back_populates='place', lazy='select', cascade='all, delete-orphan')
+    amenities = relationship('Amenity', secondary=place_amenity, lazy='select', backref=db.backref('places', lazy='select'))
 
     def __init__(self, title: str, price: float, latitude: float,
-                 longitude: float, owner_id: str, description: str = ""):
+                 longitude: float, owner_id: str, description: str = "",
+                 image_filename: str = None):
         super().__init__()
-        self.title       = title
-        self.description = description
-        self.price       = price
-        self.latitude    = latitude
-        self.longitude   = longitude
-        self.owner_id    = owner_id
-
-    # ── Validation via SQLAlchemy @validates ───────────────────────────────────
+        self.title          = title
+        self.description    = description
+        self.price          = price
+        self.latitude       = latitude
+        self.longitude      = longitude
+        self.owner_id       = owner_id
+        self.image_filename = image_filename
 
     @validates('title')
     def validate_title(self, key, value):
@@ -128,28 +83,26 @@ class Place(BaseModel):
             raise ValueError("owner_id est obligatoire.")
         return value
 
-    # ── Méthodes utilitaires ───────────────────────────────────────────────────
-
     def add_amenity(self, amenity):
-        """Lie un équipement à ce lieu (many-to-many via place_amenity)."""
         if amenity not in self.amenities:
             self.amenities.append(amenity)
 
     def to_dict(self):
         base = super().to_dict()
         base.update({
-            "title":       self.title,
-            "description": self.description,
-            "price":       self.price,
-            "latitude":    self.latitude,
-            "longitude":   self.longitude,
-            "owner_id":    self.owner_id,
+            "title":          self.title,
+            "description":    self.description,
+            "price":          self.price,
+            "latitude":       self.latitude,
+            "longitude":      self.longitude,
+            "owner_id":       self.owner_id,
+            "image_filename": self.image_filename,
             "owner": {
                 "id":         self.owner.id,
                 "first_name": self.owner.first_name,
                 "last_name":  self.owner.last_name,
                 "email":      self.owner.email,
             } if self.owner else None,
-            "amenities":   [{"id": a.id, "name": a.name} for a in self.amenities],
+            "amenities": [{"id": a.id, "name": a.name} for a in self.amenities],
         })
         return base

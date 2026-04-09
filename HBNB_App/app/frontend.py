@@ -6,6 +6,9 @@ from flask import Blueprint, send_from_directory
 FRONTEND_DIR = os.path.join(os.path.dirname(__file__), '..', '..', 'part4')
 FRONTEND_DIR = os.path.abspath(FRONTEND_DIR)
 
+UPLOAD_DIR = os.path.join(os.path.dirname(__file__), '..', 'uploads')
+UPLOAD_DIR = os.path.abspath(UPLOAD_DIR)
+
 frontend_bp = Blueprint('frontend', __name__)
 
 
@@ -58,3 +61,8 @@ def styles(filename):
 @frontend_bp.route('/images/<path:filename>')
 def images(filename):
     return send_from_directory(os.path.join(FRONTEND_DIR, 'images'), filename)
+
+
+@frontend_bp.route('/uploads/<path:filename>')
+def uploads(filename):
+    return send_from_directory(UPLOAD_DIR, filename)
