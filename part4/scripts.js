@@ -7,6 +7,27 @@ const API_URL = 'http://127.0.0.1:5001/api/v1';
    ═══════════════════════════════════════════════════════════════ */
 
 /**
+ * Wire up login/logout links in the nav based on auth state.
+ * Call once per page after the DOM is ready.
+ */
+function initNav() {
+    const token     = getCookie('token');
+    const loginLink  = document.getElementById('login-link');
+    const logoutLink = document.getElementById('logout-link');
+
+    if (loginLink)  loginLink.style.display  = token ? 'none' : '';
+    if (logoutLink) logoutLink.style.display = token ? ''     : 'none';
+
+    if (logoutLink) {
+        logoutLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            document.cookie = 'token=; path=/; max-age=0';
+            window.location.href = 'index.html';
+        });
+    }
+}
+
+/**
  * Read a single cookie value by name.
  * @param {string} name
  * @returns {string|null}
@@ -103,17 +124,11 @@ function initLoginPage() {
 let allPlaces = [];
 
 /**
- * Show / hide the login link depending on authentication state,
+ * Show / hide the login/logout links depending on authentication state,
  * then fetch places either way (GET /places/ is public).
  */
 function checkAuthIndex() {
-    const token     = getCookie('token');
-    const loginLink = document.getElementById('login-link');
-
-    if (loginLink) {
-        loginLink.style.display = token ? 'none' : 'block';
-    }
-
+    const token = getCookie('token');
     fetchPlaces(token);
 }
 
@@ -210,16 +225,14 @@ function getPlaceIdFromURL() {
 }
 
 /**
- * Show / hide the login link and the add-review section based on auth state,
+ * Show / hide the add-review section based on auth state,
  * then fetch place details.
  */
 function checkAuthPlace() {
     const token         = getCookie('token');
-    const loginLink     = document.getElementById('login-link');
     const addReview     = document.getElementById('add-review');
     const placeId       = getPlaceIdFromURL();
 
-    if (loginLink) loginLink.style.display = token ? 'none' : 'block';
     if (addReview) addReview.hidden = !token;
 
     if (!placeId) {
@@ -278,11 +291,17 @@ function displayPlaceDetails(place) {
         ? place.amenities.map((a) => `<li>${escapeHTML(a.name)}</li>`).join('')
         : '<li>None listed</li>';
 
+    const token = getCookie('token');
+    const addReviewLink = token
+        ? `<a href="add_review.html?id=${encodeURIComponent(place.id)}" class="details-button">Add a Review</a>`
+        : '';
+
     container.innerHTML = `
         <article class="place-details">
             <header class="place-details-header">
                 <h1>${escapeHTML(place.title)}</h1>
                 <p class="price">$${place.price} <span>/ night</span></p>
+                ${addReviewLink}
             </header>
 
             <section class="place-info">
@@ -635,6 +654,7 @@ function initSignupPage() {
    ═══════════════════════════════════════════════════════════════ */
 
 document.addEventListener('DOMContentLoaded', () => {
+    initNav();
     initLoginPage();
     initSignupPage();
     initIndexPage();
