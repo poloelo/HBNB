@@ -35,6 +35,16 @@ def signup():
     return send_from_directory(FRONTEND_DIR, 'signup.html')
 
 
+@frontend_bp.route('/profile.html')
+def profile():
+    return send_from_directory(FRONTEND_DIR, 'profile.html')
+
+
+@frontend_bp.route('/create_place.html')
+def create_place():
+    return send_from_directory(FRONTEND_DIR, 'create_place.html')
+
+
 @frontend_bp.route('/scripts.js')
 def scripts():
     return send_from_directory(FRONTEND_DIR, 'scripts.js')
