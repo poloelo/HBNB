@@ -10,9 +10,21 @@ Routes disponibles :
 DELETE n'est PAS implémenté dans cette partie.
 """
 
+import os
+import uuid
+from flask import request
 from flask_restx import Namespace, Resource, fields
 from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
+from werkzeug.utils import secure_filename
 from app.services import facade
+from app.extensions import db
+
+UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), '..', '..', '..', 'uploads')
+UPLOAD_FOLDER = os.path.abspath(UPLOAD_FOLDER)
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 # ── Namespace ──────────────────────────────────────────────────────────────────
 api = Namespace("places", description="Opérations sur les lieux")
@@ -70,17 +82,17 @@ place_update_model = api.model(
 place_response_model = api.model(
     "PlaceResponse",
     {
-        "id":          fields.String(description="UUID unique"),
-        "title":       fields.String(description="Titre"),
-        "description": fields.String(description="Description"),
-        "price":       fields.Float(description="Prix par nuit"),
-        "latitude":    fields.Float(description="Latitude"),
-        "longitude":   fields.Float(description="Longitude"),
-        "owner":       fields.Nested(owner_model,           description="Infos du propriétaire"),
-        "amenities":   fields.List(fields.Nested(amenity_nested_model),
-                                   description="Équipements disponibles"),
-        "created_at":  fields.String(description="Date de création ISO 8601"),
-        "updated_at":  fields.String(description="Date de mise à jour ISO 8601"),
+        "id":             fields.String(description="UUID unique"),
+        "title":          fields.String(description="Titre"),
+        "description":    fields.String(description="Description"),
+        "price":          fields.Float(description="Prix par nuit"),
+        "latitude":       fields.Float(description="Latitude"),
+        "longitude":      fields.Float(description="Longitude"),
+        "image_filename": fields.String(description="Chemin image"),
+        "owner":          fields.Nested(owner_model, description="Infos du propriétaire"),
+        "amenities":      fields.List(fields.Nested(amenity_nested_model), description="Équipements"),
+        "created_at":     fields.String(description="Date de création ISO 8601"),
+        "updated_at":     fields.String(description="Date de mise à jour ISO 8601"),
     },
 )
 
@@ -89,12 +101,13 @@ place_response_model = api.model(
 place_list_model = api.model(
     "PlaceList",
     {
-        "id":        fields.String(description="UUID unique"),
-        "title":     fields.String(description="Titre"),
-        "price":     fields.Float(description="Prix par nuit"),
-        "latitude":  fields.Float(description="Latitude"),
-        "longitude": fields.Float(description="Longitude"),
-        "owner_id":  fields.String(description="UUID du propriétaire"),
+        "id":             fields.String(description="UUID unique"),
+        "title":          fields.String(description="Titre"),
+        "price":          fields.Float(description="Prix par nuit"),
+        "latitude":       fields.Float(description="Latitude"),
+        "longitude":      fields.Float(description="Longitude"),
+        "owner_id":       fields.String(description="UUID du propriétaire"),
+        "image_filename": fields.String(description="Chemin image"),
     },
 )
 
@@ -221,3 +234,46 @@ class PlaceReviews(Resource):
 
         reviews = facade.get_reviews_by_place(place_id)
         return [r.to_dict() for r in reviews], 200
+
+
+# ── /api/v1/places/<place_id>/upload ──────────────────────────────────────────
+@api.route("/<string:place_id>/upload")
+@api.param("place_id", "L'identifiant UUID du lieu")
+class PlaceImageUpload(Resource):
+
+    @jwt_required()
+    def post(self, place_id):
+        """
+        POST /api/v1/places/<place_id>/upload
+        Upload une image pour un lieu. JWT requis, propriétaire ou admin seulement.
+        Content-Type: multipart/form-data, champ 'image'.
+        """
+        current_user_id = get_jwt_identity()
+        is_admin = get_jwt().get("is_admin", False)
+
+        place = facade.get_place(place_id)
+        if not place:
+            api.abort(404, "Lieu introuvable.")
+
+        if not is_admin and place.owner_id != current_user_id:
+            api.abort(403, "Vous n'êtes pas le propriétaire de ce lieu.")
+
+        if 'image' not in request.files:
+            api.abort(400, "Aucun fichier 'image' dans la requête.")
+
+        file = request.files['image']
+        if file.filename == '':
+            api.abort(400, "Nom de fichier vide.")
+
+        if not allowed_file(file.filename):
+            api.abort(400, "Format non supporté. Utilisez jpg, png, gif ou webp.")
+
+        ext = file.filename.rsplit('.', 1)[1].lower()
+        filename = f"{uuid.uuid4()}.{ext}"
+        os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+        file.save(os.path.join(UPLOAD_FOLDER, filename))
+
+        # Stocker le chemin relatif web dans le modèle
+        facade.update_place(place_id, {'image_filename': f"uploads/{filename}"})
+
+        return {"image_filename": f"uploads/{filename}"}, 200
