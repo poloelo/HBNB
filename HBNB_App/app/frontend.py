@@ -30,6 +30,11 @@ def add_review():
     return send_from_directory(FRONTEND_DIR, 'add_review.html')
 
 
+@frontend_bp.route('/signup.html')
+def signup():
+    return send_from_directory(FRONTEND_DIR, 'signup.html')
+
+
 @frontend_bp.route('/scripts.js')
 def scripts():
     return send_from_directory(FRONTEND_DIR, 'scripts.js')
