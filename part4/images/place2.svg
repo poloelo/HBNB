@@ -1,9 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="400" height="220" viewBox="0 0 400 220">
-  <rect width="400" height="220" fill="#d4e8d0"/>
-  <rect x="60" y="80" width="280" height="120" fill="#90c97a"/>
-  <polygon points="40,80 200,20 360,80" fill="#5a7a45"/>
-  <rect x="160" y="130" width="80" height="70" fill="#4a6035"/>
-  <rect x="80" y="100" width="60" height="50" fill="#87CEEB"/>
-  <rect x="260" y="100" width="60" height="50" fill="#87CEEB"/>
-  <text x="200" y="210" font-family="Arial,sans-serif" font-size="14" fill="#555" text-anchor="middle">Charming Studio</text>
-</svg>

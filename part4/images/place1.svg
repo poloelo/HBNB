@@ -1,9 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="400" height="220" viewBox="0 0 400 220">
-  <rect width="400" height="220" fill="#e8d5b7"/>
-  <rect x="80" y="60" width="240" height="140" fill="#c9a96e"/>
-  <polygon points="60,60 200,10 340,60" fill="#8B4513"/>
-  <rect x="170" y="120" width="60" height="80" fill="#5a3e2b"/>
-  <rect x="100" y="90" width="50" height="40" fill="#87CEEB"/>
-  <rect x="250" y="90" width="50" height="40" fill="#87CEEB"/>
-  <text x="200" y="200" font-family="Arial,sans-serif" font-size="14" fill="#555" text-anchor="middle">Cozy Downtown Apartment</text>
-</svg>
