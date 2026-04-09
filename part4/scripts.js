@@ -143,11 +143,15 @@ function initLoginPage() {
 let allPlaces = [];
 
 /**
- * Show / hide the login/logout links depending on authentication state,
- * then fetch places either way (GET /places/ is public).
+ * Redirect to login if unauthenticated, otherwise fetch places.
+ * Per spec: "Ensure the page redirects to the login page if the user is not authenticated."
  */
 function checkAuthIndex() {
     const token = getCookie('token');
+    if (!token) {
+        window.location.href = 'login.html';
+        return;
+    }
     fetchPlaces(token);
 }
 
