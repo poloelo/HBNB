@@ -561,6 +561,24 @@ footer {
     transform: translateY(-1px);
 }
 
+.error-message {
+    color: #c0392b;
+    font-size: 0.85rem;
+    margin-top: 8px;
+}
+
+.success-message {
+    color: var(--secondary);
+    font-size: 0.9rem;
+    margin-top: 8px;
+}
+
+.success-message a {
+    color: var(--secondary);
+    font-weight: 600;
+    text-decoration: underline;
+}
+
 .auth-footer {
     text-align: center;
     margin-top: 20px;

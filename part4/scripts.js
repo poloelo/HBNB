@@ -585,11 +585,58 @@ function initAddReviewPage() {
 }
 
 /* ═══════════════════════════════════════════════════════════════
+   SIGN-UP PAGE  (signup.html)
+   ═══════════════════════════════════════════════════════════════ */
+
+function initSignupPage() {
+    const form = document.getElementById('signup-form');
+    if (!form) return;
+
+    form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const errorEl   = document.getElementById('signup-error');
+        const successEl = document.getElementById('signup-success');
+        if (errorEl)   { errorEl.hidden = true;   errorEl.textContent = ''; }
+        if (successEl) { successEl.hidden = true; }
+
+        const first_name = document.getElementById('first_name').value.trim();
+        const last_name  = document.getElementById('last_name').value.trim();
+        const email      = document.getElementById('email').value.trim();
+        const password   = document.getElementById('password').value;
+
+        if (!first_name || !last_name || !email || !password) {
+            if (errorEl) { errorEl.textContent = 'Please fill in all fields.'; errorEl.hidden = false; }
+            return;
+        }
+
+        try {
+            const response = await fetch(`${API_URL}/users/`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ first_name, last_name, email, password })
+            });
+
+            if (response.ok) {
+                form.reset();
+                if (successEl) successEl.hidden = false;
+            } else {
+                let msg = 'Registration failed. Please try again.';
+                try { const e = await response.json(); if (e.message) msg = e.message; } catch (_) {}
+                if (errorEl) { errorEl.textContent = msg; errorEl.hidden = false; }
+            }
+        } catch (_) {
+            if (errorEl) { errorEl.textContent = 'Network error. Please try again later.'; errorEl.hidden = false; }
+        }
+    });
+}
+
+/* ═══════════════════════════════════════════════════════════════
    BOOTSTRAP — run the right init depending on the current page
    ═══════════════════════════════════════════════════════════════ */
 
 document.addEventListener('DOMContentLoaded', () => {
     initLoginPage();
+    initSignupPage();
     initIndexPage();
     initPlacePage();
     initAddReviewPage();
