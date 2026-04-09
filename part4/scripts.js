@@ -7,16 +7,35 @@ const API_URL = '/api/v1';
    ═══════════════════════════════════════════════════════════════ */
 
 /**
- * Wire up login/logout links in the nav based on auth state.
+ * Decode the JWT payload (base64url → JSON).
+ * @returns {Object|null}  { sub: userId, is_admin: bool, ... } or null
+ */
+function getTokenPayload() {
+    const token = getCookie('token');
+    if (!token) return null;
+    try {
+        const base64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+        return JSON.parse(atob(base64));
+    } catch (_) {
+        return null;
+    }
+}
+
+/**
+ * Wire up login/logout + authenticated nav links based on auth state.
  * Call once per page after the DOM is ready.
  */
 function initNav() {
-    const token     = getCookie('token');
+    const token      = getCookie('token');
     const loginLink  = document.getElementById('login-link');
     const logoutLink = document.getElementById('logout-link');
+    const navProfile = document.getElementById('nav-profile');
+    const navNewPlace = document.getElementById('nav-new-place');
 
-    if (loginLink)  loginLink.style.display  = token ? 'none' : '';
-    if (logoutLink) logoutLink.style.display = token ? ''     : 'none';
+    if (loginLink)   loginLink.style.display   = token ? 'none' : '';
+    if (logoutLink)  logoutLink.style.display  = token ? ''     : 'none';
+    if (navProfile)  navProfile.style.display  = token ? ''     : 'none';
+    if (navNewPlace) navNewPlace.style.display = token ? ''     : 'none';
 
     if (logoutLink) {
         logoutLink.addEventListener('click', (e) => {
@@ -650,6 +669,204 @@ function initSignupPage() {
 }
 
 /* ═══════════════════════════════════════════════════════════════
+   PROFILE PAGE  (profile.html)
+   ═══════════════════════════════════════════════════════════════ */
+
+function initProfilePage() {
+    const form = document.getElementById('profile-form');
+    if (!form) return;
+
+    const token   = checkAuthentication();
+    const payload = getTokenPayload();
+    if (!payload) return;
+    const userId = payload.sub;
+
+    /* Fetch user info */
+    fetch(`${API_URL}/users/${userId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+    })
+        .then((r) => r.ok ? r.json() : null)
+        .then((user) => {
+            if (!user) return;
+            document.getElementById('first_name').value = user.first_name;
+            document.getElementById('last_name').value  = user.last_name;
+            document.getElementById('profile-name').textContent =
+                `${user.first_name} ${user.last_name}`;
+            document.getElementById('profile-email').textContent = user.email;
+            document.getElementById('profile-since').textContent =
+                `Member since ${formatDate(user.created_at)}`;
+            document.getElementById('profile-avatar').textContent =
+                user.first_name[0].toUpperCase();
+        })
+        .catch(() => {});
+
+    /* Fetch user's places */
+    fetch(`${API_URL}/places/`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
+    })
+        .then((r) => r.ok ? r.json() : [])
+        .then((places) => {
+            const myPlaces = places.filter((p) => p.owner_id === userId);
+            displayMyPlaces(myPlaces);
+        })
+        .catch(() => {});
+
+    /* Handle profile update */
+    form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const errorEl   = document.getElementById('profile-error');
+        const successEl = document.getElementById('profile-success');
+        if (errorEl)   { errorEl.hidden = true;   errorEl.textContent = ''; }
+        if (successEl) { successEl.hidden = true; }
+
+        const first_name = document.getElementById('first_name').value.trim();
+        const last_name  = document.getElementById('last_name').value.trim();
+
+        if (!first_name || !last_name) {
+            if (errorEl) { errorEl.textContent = 'Please fill in all fields.'; errorEl.hidden = false; }
+            return;
+        }
+
+        try {
+            const response = await fetch(`${API_URL}/users/${userId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`
+                },
+                body: JSON.stringify({ first_name, last_name })
+            });
+
+            if (response.ok) {
+                const user = await response.json();
+                document.getElementById('profile-name').textContent =
+                    `${user.first_name} ${user.last_name}`;
+                document.getElementById('profile-avatar').textContent =
+                    user.first_name[0].toUpperCase();
+                if (successEl) successEl.hidden = false;
+            } else {
+                let msg = 'Update failed.';
+                try { const e = await response.json(); if (e.message) msg = e.message; } catch (_) {}
+                if (errorEl) { errorEl.textContent = msg; errorEl.hidden = false; }
+            }
+        } catch (_) {
+            if (errorEl) { errorEl.textContent = 'Network error.'; errorEl.hidden = false; }
+        }
+    });
+}
+
+/**
+ * Render the user's places into #my-places-list.
+ */
+function displayMyPlaces(places) {
+    const container = document.getElementById('my-places-list');
+    if (!container) return;
+
+    if (places.length === 0) {
+        container.innerHTML = '<p class="no-reviews">You have no places yet.</p>';
+        return;
+    }
+
+    container.innerHTML = '';
+    places.forEach((place) => {
+        const article = document.createElement('article');
+        article.className = 'place-card';
+        article.innerHTML = `
+            <h2>${escapeHTML(place.title)}</h2>
+            <p class="price">$${place.price} <span>/ night</span></p>
+            <footer class="card-footer">
+                <a href="place.html?id=${encodeURIComponent(place.id)}" class="details-button">View</a>
+            </footer>`;
+        container.appendChild(article);
+    });
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   CREATE PLACE PAGE  (create_place.html)
+   ═══════════════════════════════════════════════════════════════ */
+
+function initCreatePlacePage() {
+    const form = document.getElementById('create-place-form');
+    if (!form) return;
+
+    const token   = checkAuthentication();
+    const payload = getTokenPayload();
+    if (!payload) return;
+    const userId = payload.sub;
+
+    /* Load amenities checkboxes */
+    fetch(`${API_URL}/amenities/`)
+        .then((r) => r.ok ? r.json() : [])
+        .then((amenities) => {
+            const container = document.getElementById('amenities-list');
+            if (!container) return;
+            if (amenities.length === 0) {
+                container.innerHTML = '<p class="text-light">No amenities available.</p>';
+                return;
+            }
+            container.innerHTML = '';
+            amenities.forEach((a) => {
+                const label = document.createElement('label');
+                label.className = 'amenity-checkbox';
+                label.innerHTML = `
+                    <input type="checkbox" name="amenities" value="${escapeHTML(a.id)}">
+                    ${escapeHTML(a.name)}`;
+                container.appendChild(label);
+            });
+        })
+        .catch(() => {});
+
+    /* Handle form submission */
+    form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const errorEl   = document.getElementById('create-place-error');
+        const successEl = document.getElementById('create-place-success');
+        if (errorEl)   { errorEl.hidden = true;   errorEl.textContent = ''; }
+        if (successEl) { successEl.hidden = true; }
+
+        const title       = document.getElementById('title').value.trim();
+        const description = document.getElementById('description').value.trim();
+        const price       = parseFloat(document.getElementById('price').value);
+        const latitude    = parseFloat(document.getElementById('latitude').value);
+        const longitude   = parseFloat(document.getElementById('longitude').value);
+
+        if (!title || isNaN(price) || isNaN(latitude) || isNaN(longitude)) {
+            if (errorEl) { errorEl.textContent = 'Please fill in all required fields.'; errorEl.hidden = false; }
+            return;
+        }
+
+        const amenityCheckboxes = form.querySelectorAll('input[name="amenities"]:checked');
+        const amenities = Array.from(amenityCheckboxes).map((cb) => cb.value);
+
+        try {
+            const response = await fetch(`${API_URL}/places/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    title, description, price, latitude, longitude,
+                    owner_id: userId,
+                    amenities
+                })
+            });
+
+            if (response.ok) {
+                form.reset();
+                if (successEl) successEl.hidden = false;
+            } else {
+                let msg = 'Could not create place.';
+                try { const e = await response.json(); if (e.message) msg = e.message; } catch (_) {}
+                if (errorEl) { errorEl.textContent = msg; errorEl.hidden = false; }
+            }
+        } catch (_) {
+            if (errorEl) { errorEl.textContent = 'Network error.'; errorEl.hidden = false; }
+        }
+    });
+}
+
+/* ═══════════════════════════════════════════════════════════════
    BOOTSTRAP — run the right init depending on the current page
    ═══════════════════════════════════════════════════════════════ */
 
@@ -660,4 +877,6 @@ document.addEventListener('DOMContentLoaded', () => {
     initIndexPage();
     initPlacePage();
     initAddReviewPage();
+    initProfilePage();
+    initCreatePlacePage();
 });

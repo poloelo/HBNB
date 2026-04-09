@@ -94,6 +94,7 @@ place_list_model = api.model(
         "price":     fields.Float(description="Prix par nuit"),
         "latitude":  fields.Float(description="Latitude"),
         "longitude": fields.Float(description="Longitude"),
+        "owner_id":  fields.String(description="UUID du propriétaire"),
     },
 )
 
